@@ -1,0 +1,2599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>Stella's Game - Magical Early Learning</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FF8FAB">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+    <style>
+        /* --- DESIGN PALETTE & VARIABLES --- */
+        :root {
+            --bg-magic: #FFF8F0;          /* Warm soft cream background */
+            --stella-pink: #FF8FAB;       /* Soft coral-pink */
+            --stella-dark-pink: #E63980;  /* Strong readable magenta-pink */
+            --stella-gold: #FFC300;       /* Bright cheerful gold */
+            --stella-purple: #C77DFF;     /* Fun bright purple */
+            --color-blue: #4CC9F0;        /* Bright sky blue */
+            --color-green: #57CC99;       /* Fresh mint green */
+            --color-orange: #FF9F1C;      /* True orange */
+            --color-red: #EF476F;         /* Cheerful red */
+            --color-yellow: #FFD166;      /* Sunny yellow */
+            --color-teal: #06D6A0;        /* Vibrant teal */
+            --text-dark: #2B2D42;         /* High-contrast deep navy for easy reading */
+            --text-muted: #5C5F7A;        /* Softer secondary text */
+            --font-main: 'Comic Sans MS', 'Chalkboard SE', 'Ubuntu', 'Segoe UI', sans-serif;
+        }
+
+        /* --- GLOBAL LAYOUT SETTINGS --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: linear-gradient(145deg, #FFF8F0 0%, #FFE8F0 40%, #E8F4FF 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            touch-action: manipulation;
+        }
+
+        /* --- MAGIC HEADER --- */
+        header {
+            width: 100%;
+            padding: 18px 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 6px 24px rgba(43, 45, 66, 0.08);
+            border-bottom: 5px solid var(--stella-gold);
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            color: var(--stella-dark-pink);
+            text-shadow: 2px 2px 0px var(--stella-gold), 0 0 12px rgba(255, 195, 0, 0.3);
+            margin-bottom: 4px;
+            animation: gentlePulse 2.5s infinite alternate;
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes gentlePulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.025); }
+        }
+
+        .subtitle {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        /* --- CONTAINER --- */
+        .container {
+            width: 100%;
+            max-width: 950px;
+            padding: 6px 14px 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: stretch;
+            position: relative;
+        }
+
+        /* --- SCREEN ANIMATIONS --- */
+        .screen {
+            display: none;
+            width: 100%;
+            animation: magicPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15) forwards;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 0;
+            margin: 0;
+            gap: 8px;
+        }
+        .screen.active > .back-btn {
+            align-self: flex-start;
+            margin: 0;
+            flex-shrink: 0;
+        }
+        .screen.active > .game-box {
+            margin: 0 auto;
+            flex: 0 1 auto;
+        }
+        .screen.active > h2 {
+            margin: 0;
+        }
+        .screen.active > .submenu-container {
+            margin-top: 8px;
+        }
+
+        @keyframes magicPop {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* --- ROADMAP GRID & MILESTONE CARDS --- */
+        .roadmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 22px;
+            margin-top: 16px;
+            padding-bottom: 40px;
+        }
+
+        .milestone-card {
+            background: white;
+            border-radius: 28px;
+            padding: 24px 18px 22px;
+            text-align: center;
+            box-shadow: 0 10px 0px rgba(255, 182, 193, 0.18);
+            border: 5px solid #FFF;
+            cursor: pointer;
+            transition: transform 0.2s;
+            min-height: 210px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .milestone-card:hover, .milestone-card:active {
+            transform: translateY(-4px);
+        }
+
+        .card-gold { border-color: var(--stella-gold); }
+        .card-pink { border-color: var(--stella-pink); }
+        .card-blue { border-color: var(--color-blue); }
+        .card-green { border-color: var(--color-green); }
+        .card-purple { border-color: #D6BBFB; }
+
+        .age-badge {
+            display: inline-block;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+        .card-gold .age-badge { background-color: #FFF8E1; color: #9A7200; }
+        .card-pink .age-badge { background-color: #FFE4EC; color: #C2185B; }
+        .card-blue .age-badge { background-color: #E3F8FF; color: #0277BD; }
+        .card-green .age-badge { background-color: #E8F8F0; color: #1B5E20; }
+        .card-purple .age-badge { background-color: #F3E8FF; color: #6A1B9A; }
+
+        .milestone-card h3 { font-size: 1.55rem; margin-bottom: 8px; color: var(--text-dark); }
+        .milestone-card p { font-size: 1.05rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 16px; flex: 1; }
+
+        /* --- SUB-MENU DESIGN FOR MULTIPLE MINI-GAMES --- */
+        .submenu-container {
+            display: flex;
+            gap: 22px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 24px;
+            padding-bottom: 40px;
+        }
+        .game-select-card {
+            background: white;
+            border-radius: 28px;
+            padding: 28px 20px;
+            width: 280px;
+            max-width: 90vw;
+            text-align: center;
+            box-shadow: 0 8px 0 rgba(255,182,193,0.2);
+            border: 5px solid var(--stella-pink);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .game-select-card:hover, .game-select-card:active { transform: translateY(-4px); }
+        .game-select-card h4 { font-size: 1.45rem; color: var(--stella-dark-pink); margin-bottom: 10px; }
+        .game-select-card p { font-size: 1.05rem; color: var(--text-muted); margin-bottom: 18px; line-height: 1.35; }
+
+        /* --- CORE CONTROLS & BUTTONS --- */
+        .play-btn {
+            background: linear-gradient(to bottom, #FFE600, var(--stella-gold));
+            border: none;
+            padding: 14px 32px;
+            font-family: var(--font-main);
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #5A4A00;
+            border-radius: 24px;
+            box-shadow: 0 5px 0 #D4B200;
+            cursor: pointer;
+            min-height: 52px;
+            min-width: 120px;
+        }
+        .play-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        .back-btn {
+            background-color: white;
+            border: 4px solid var(--stella-pink);
+            color: var(--stella-dark-pink);
+            padding: 12px 26px;
+            font-family: var(--font-main);
+            font-weight: bold;
+            font-size: 1.15rem;
+            border-radius: 24px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 var(--stella-pink);
+            min-height: 50px;
+            margin-bottom: 12px;
+        }
+        .back-btn:active { transform: translateY(5px); box-shadow: none; }
+
+        /* --- THE CORE GAME BOX --- */
+        .game-box {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 36px;
+            padding: 24px 20px 28px;
+            box-shadow: 0 16px 36px rgba(255, 182, 193, 0.18);
+            border: 6px solid white;
+            text-align: center;
+            min-height: 0;
+            width: 100%;
+            max-width: 640px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 12px;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .game-prompt {
+            font-size: 1.85rem;
+            color: var(--text-dark);
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.9);
+            font-weight: 800;
+            margin: 0 0 4px 0;
+            line-height: 1.3;
+            padding: 0 8px;
+        }
+
+        /* --- STAGE 0-1: SENSORY AUDIO BOARD --- */
+        .soundboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 110px);
+            gap: 18px;
+            margin: auto 0;
+            justify-content: center;
+        }
+        .sound-pad {
+            width: 110px;
+            height: 110px;
+            border-radius: 28px;
+            border: 5px solid white;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.12);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .sound-pad:active { transform: scale(0.92); }
+
+        /* --- FARM ANIMALS --- */
+        .farm-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            width: 100%;
+            max-width: 420px;
+            margin: auto 0;
+        }
+        .farm-animal {
+            background: white;
+            border-radius: 24px;
+            border: 5px solid #FFE4E1;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.08);
+            transition: transform 0.15s;
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .farm-animal:active { transform: scale(0.94); }
+
+        /* Correct answer highlight */
+        .lit-up {
+            outline: 5px solid #FFD166 !important;
+            box-shadow: 0 0 0 6px rgba(255, 209, 102, 0.5), 0 0 28px rgba(255, 209, 102, 0.75) !important;
+            transform: scale(1.07) !important;
+            transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+            z-index: 5;
+        }
+        .farm-animal .emoji { font-size: 2.8rem; line-height: 1; }
+        .farm-animal .label { font-size: 1rem; font-weight: bold; color: var(--text-dark); }
+
+        /* --- PEEKABOO --- */
+        .peekaboo-area {
+            display: flex;
+            gap: 18px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: auto 0;
+            width: 100%;
+        }
+        .peek-door {
+            width: 120px;
+            height: 140px;
+            background: linear-gradient(135deg, #FFB6C1, #FF8FAB);
+            border-radius: 20px;
+            border: 5px solid white;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+        .peek-door:active { transform: scale(0.95); }
+        .peek-door.open { background: linear-gradient(135deg, #FFF8F0, #FFE8F0); }
+
+        /* --- STAGE 1-2: COLOR FLASHCARDS --- */
+        .flashcard {
+            width: 260px;
+            height: 300px;
+            background: white;
+            border-radius: 32px;
+            border: 6px solid #FFF;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: auto 0;
+            cursor: pointer;
+        }
+        .flashcard-inner {
+            width: 120px;
+            height: 120px;
+            border-radius: 30px;
+        }
+        .flashcard-text {
+            font-size: 2.2rem;
+            font-weight: bold;
+        }
+
+        /* --- STAGE 2-3: SHAPE DRAGGING ENVIRONMENT --- */
+        .drag-workspace {
+            width: 100%;
+            height: 320px;
+            position: relative;
+            margin: auto 0;
+            background: #FFF9FA;
+            border-radius: 24px;
+            border: 3px dashed #FFE4E1;
+            overflow: hidden;
+            touch-action: none;
+        }
+        .interactive-slot {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border: 4px dashed #FFB6C1;
+            border-radius: 20px;
+            background: #FFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .interactive-item {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            cursor: grab;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .interactive-item:active { cursor: grabbing; }
+        .interactive-item.placed {
+            cursor: default;
+            filter: drop-shadow(0 0 6px var(--stella-gold));
+        }
+
+        /* --- STAGE 3-4: MATH COMPONENT --- */
+        .comparison-layout {
+            display: flex;
+            width: 100%;
+            justify-content: space-around;
+            align-items: center;
+            margin: auto 0;
+            gap: 20px;
+        }
+        .comparison-box {
+            background: white;
+            border: 4px solid #FFE4E1;
+            border-radius: 25px;
+            padding: 20px;
+            width: 45%;
+            min-height: 180px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #FFD1DC;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .comparison-box:active { transform: translateY(4px); box-shadow: none; }
+
+        /* --- STAGE 4-5: ALPHABET POP GAME --- */
+        .bubble-chamber {
+            width: 100%;
+            height: 280px;
+            background: #F0FDFF;
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid #E0F7FA;
+            margin: auto 0;
+        }
+        .abc-bubble {
+            position: absolute;
+            width: 75px;
+            height: 75px;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,1) 0%, rgba(160,206,217,0.6) 70%, rgba(160,206,217,0.9) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            cursor: pointer;
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.05);
+            animation: bubbleFloat 4s linear infinite alternate;
+        }
+        @keyframes bubbleFloat {
+            from { transform: translateY(10px) translateX(0); }
+            to { transform: translateY(-10px) translateX(10px); }
+        }
+
+        /* --- COLOR BLOBS --- */
+        .color-options { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin: auto 0; }
+        .color-blob { 
+            width: 120px; height: 120px; border-radius: 50%; cursor: pointer; 
+            border: 6px solid #FFF; box-shadow: 0 8px 0 rgba(0,0,0,0.1); 
+            transition: transform 0.15s; 
+        }
+        .color-blob:active { transform: scale(0.92); }
+        
+        /* --- MATH STARS --- */
+        .math-display { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; max-width: 560px; margin: auto 0; }
+        .count-item { width: 48px; height: 48px; animation: starFloat 2s ease-in-out infinite alternate; }
+        @keyframes starFloat { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+        .math-answers { display: flex; gap: 14px; margin-top: 18px; justify-content: center; flex-wrap: wrap; }
+        .num-btn {
+            background: linear-gradient(to bottom, #FFE600, var(--stella-gold));
+            border: none;
+            width: 76px; height: 76px;
+            font-family: var(--font-main);
+            font-size: 1.9rem;
+            font-weight: bold;
+            color: #5A4A00;
+            border-radius: 50%;
+            box-shadow: 0 6px 0 #D4B200;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .num-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        /* --- ENGLISH MATCH OPTIONS --- */
+        .abc-options {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: auto 0;
+            width: 100%;
+        }
+        .abc-choice {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            width: 140px;
+            text-align: center;
+            box-shadow: 0 8px 0 rgba(255,182,193,0.25);
+            border: 4px solid var(--stella-pink);
+            cursor: pointer;
+            transition: transform 0.15s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .abc-choice:active { transform: scale(0.95); }
+        .abc-choice svg { width: 80px; height: 80px; }
+        .abc-choice span { font-size: 1.1rem; color: var(--text-dark); }
+
+        /* --- SENSORY MOBILE --- */
+        .mobile-canvas {
+            width: 100%;
+            max-width: 400px;
+            height: 280px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: auto 0;
+            background: #FFF9FA;
+            border-radius: 24px;
+            border: 3px dashed #FFE4E1;
+            position: relative;
+        }
+        .mobile-element {
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+            animation: mobileDance 3s ease-in-out infinite alternate;
+        }
+        .mobile-element:nth-child(2) { animation-delay: 0.5s; }
+        .mobile-element:nth-child(3) { animation-delay: 1s; }
+        @keyframes mobileDance {
+            0% { transform: translateY(0) rotate(-5deg) scale(1); }
+            50% { transform: translateY(-15px) rotate(5deg) scale(1.05); }
+            100% { transform: translateY(0) rotate(-5deg) scale(1); }
+        }
+
+        
+        /* --- FINGER PAINT --- */
+        .paint-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        .paint-toolbar button, .paint-mode-btn {
+            font-family: var(--font-main);
+            font-weight: bold;
+            border-radius: 16px;
+            border: 3px solid #FFE4E1;
+            background: white;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+        }
+        .paint-mode-btn.active {
+            background: var(--stella-gold);
+            border-color: #D4B200;
+        }
+        .paint-colors { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .paint-swatch {
+            width: 36px; height: 36px; border-radius: 50%;
+            border: 3px solid white; box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+            cursor: pointer;
+        }
+        .paint-swatch.active { outline: 3px solid var(--text-dark); }
+        #paint-canvas {
+            width: 100%;
+            max-width: 860px;
+            height: min(58vh, 520px);
+            background: #fff;
+            border-radius: 20px;
+            border: 4px solid #FFE4E1;
+            touch-action: none;
+            cursor: crosshair;
+            display: block;
+            margin: 0 auto;
+        }
+        .paint-game-box {
+            max-width: 920px !important;
+            width: 100%;
+        }
+        .paint-toolbar.sticky-tools {
+            position: sticky;
+            top: 0;
+            z-index: 8;
+            background: rgba(255,255,255,0.95);
+            padding: 8px 4px;
+            border-radius: 14px;
+        }
+        .camera-btn-main {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 auto;
+            background: white;
+            border: 3px solid var(--stella-pink);
+            color: var(--stella-dark-pink);
+            padding: 10px 18px;
+            border-radius: 22px;
+            font-family: var(--font-main);
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--stella-pink);
+        }
+        .camera-btn-main:active { transform: translateY(3px); box-shadow: none; }
+
+        /* --- REWARD CANVAS OVERLAY --- */
+        #confetti-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 999; display: none;
+        }
+
+        /* PC: keep every game pinned under the header (no vertical centering gap) */
+        @media (min-width: 641px) {
+            .container {
+                padding: 8px 20px 28px;
+                justify-content: flex-start;
+            }
+            .screen.active {
+                justify-content: flex-start;
+                min-height: 0;
+            }
+            .game-box {
+                min-height: 0 !important;
+                margin: 0 auto !important;
+            }
+            body {
+                justify-content: flex-start;
+            }
+        }
+
+        /* Responsive – phones & small tablets */
+        @media (max-width: 640px) {
+            h1 { font-size: 1.7rem; }
+            .subtitle { font-size: 0.95rem; }
+            .roadmap-grid { 
+                grid-template-columns: 1fr; 
+                gap: 16px;
+                padding: 0 4px 50px;
+            }
+            .milestone-card {
+                min-height: 180px;
+                padding: 20px 16px;
+            }
+            .milestone-card h3 { font-size: 1.4rem; }
+            .milestone-card p { font-size: 1rem; }
+            .game-select-card { width: 100%; max-width: 340px; }
+            .soundboard-grid { grid-template-columns: repeat(3, 92px); gap: 14px; }
+            .sound-pad { width: 92px; height: 92px; border-radius: 24px; }
+            .game-prompt { font-size: 1.45rem; }
+            .game-box { min-height: 0; padding: 16px 12px 20px; border-radius: 28px; }
+            .flashcard { width: 220px; height: 260px; }
+            .color-blob { width: 100px; height: 100px; }
+            .num-btn { width: 68px; height: 68px; font-size: 1.6rem; }
+            .abc-choice { width: 120px; padding: 12px; }
+            .abc-choice svg { width: 64px; height: 64px; }
+            .mobile-element { width: 86px; height: 86px; }
+            .drag-workspace { height: 300px; }
+            .play-btn { padding: 14px 28px; font-size: 1.2rem; min-height: 54px; }
+            .back-btn { padding: 12px 22px; font-size: 1.1rem; min-height: 50px; }
+            .container { padding: 4px 10px 16px; }
+        }
+
+        @media (max-width: 380px) {
+            .soundboard-grid { grid-template-columns: repeat(3, 80px); gap: 10px; }
+            .sound-pad { width: 80px; height: 80px; }
+            .color-blob { width: 88px; height: 88px; }
+            .num-btn { width: 60px; height: 60px; font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🌸 Stella's Game 🌟</h1>
+        <div class="subtitle">A gentle learning game for little ones</div>
+    </header>
+
+    <div class="container">
+        <!-- MAIN ROADMAP HUB SCREEN -->
+        <div id="screen-menu" class="screen active">
+            <h2 style="text-align: center; margin-top: 10px; color: var(--text-dark);">Learning Map</h2>
+            <p style="text-align: center; color: var(--text-muted); max-width: 680px; margin: 6px auto 8px auto; font-size: 1.1rem; line-height: 1.45;">
+                A gentle learning game for little ones 💕 Tap a card and let's play!
+            </p>
+            <div style="text-align:center; margin: 0 0 12px 0;">
+                <button type="button" class="camera-btn-main" title="Opens your camera to take a photo of playtime" onclick="document.getElementById('moment-camera').click()">📷 Capture a moment</button>
+                <input type="file" id="moment-camera" accept="image/*" capture="environment" style="display:none" onchange="handleMomentCapture(this)">
+                <p id="moment-status" style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;min-height:1.1em;"></p>
+            </div>
+
+            <div class="roadmap-grid">
+                <div class="milestone-card card-gold" onclick="showSubmenu('sensory')">
+                    <span class="age-badge">0 - 12 Months</span>
+                    <h3>👀 Sensory Fun</h3>
+                    <p>Pretty shapes that move and soft music for little eyes</p>
+                    <button class="play-btn">Play</button>
+                </div>
+
+                <div class="milestone-card card-pink" onclick="showSubmenu('colors')">
+                    <span class="age-badge">1 - 2 Years</span>
+                    <h3>🎨 Colors</h3>
+                    <p>Find the colors and learn their names</p>
+                    <button class="play-btn">Play</button>
+                </div>
+
+                <div class="milestone-card card-blue" onclick="showSubmenu('shapes')">
+                    <span class="age-badge">2 - 3 Years</span>
+                    <h3>🔷 Shapes</h3>
+                    <p>Drag the shapes home and find the biggest ones</p>
+                    <button class="play-btn">Play</button>
+                </div>
+
+                <div class="milestone-card card-green" onclick="showSubmenu('math')">
+                    <span class="age-badge">3 - 4 Years</span>
+                    <h3>🔢 Numbers</h3>
+                    <p>Count the stars and see which side has more</p>
+                    <button class="play-btn">Play</button>
+                </div>
+
+                <div class="milestone-card card-purple" onclick="showSubmenu('english')">
+                    <span class="age-badge">4 - 5 Years</span>
+                    <h3>🔤 Letters</h3>
+                    <p>Match letters to pictures and pop the bubbles</p>
+                    <button class="play-btn">Play</button>
+                </div>
+
+                <div class="milestone-card card-gold" onclick="showSubmenu('create')" style="border-color:#06D6A0;">
+                    <span class="age-badge" style="background:#E8FFF6;color:#0B7A5A;">Create</span>
+                    <h3>🎨 Create & Paint</h3>
+                    <p>Finger paint, letters, numbers and shapes to trace</p>
+                    <button class="play-btn">Play</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SUBMENU SELECTORS -->
+        <div id="screen-submenu" class="screen">
+            <button class="back-btn" onclick="showMenu()">← Back</button>
+            <h2 id="submenu-title" style="text-align:center; color: var(--stella-dark-pink); margin-bottom: 20px;">Choose a Game</h2>
+            <div class="submenu-container" id="submenu-cards-container"></div>
+        </div>
+
+        <!-- GAME MODULES -->
+        <!-- STAGE 0-1 GAME A: VISUAL MOBILE -->
+        <div id="game-sensory-mobile" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('sensory')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt">Look at the pretty shapes!</div>
+                <div class="mobile-canvas" id="canvas-sensory"></div>
+                <p style="color: var(--text-muted); font-style: italic;">Black, white & bright shapes for little eyes ✨</p>
+            </div>
+        </div>
+
+        <!-- STAGE 0-1 GAME B: AUDIO BOARD -->
+        <div id="game-sensory-soundboard" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('sensory')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt">Tap the music pads!</div>
+                <div class="soundboard-grid" id="soundboard-pads"></div>
+                <p style="color: var(--text-muted); font-style: italic;">Each pad makes a different pretty sound 🎶</p>
+            </div>
+        </div>
+
+        <!-- STAGE 0-1 GAME C: FARM ANIMALS -->
+        <div id="game-sensory-farm" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('sensory')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt" id="prompt-farm">Touch the animals!</div>
+                <div class="farm-grid" id="farm-animals"></div>
+                <p style="color: var(--text-muted); font-style: italic;">Touch an animal to hear it</p>
+            </div>
+        </div>
+
+        <!-- STAGE 0-1 GAME D: PEEKABOO -->
+        <div id="game-sensory-peekaboo" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('sensory')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt" id="prompt-peekaboo">Where is the happy face?</div>
+                <div class="peekaboo-area" id="peekaboo-area"></div>
+                <p style="color: var(--text-muted); font-style: italic;">Tap the doors to find the face</p>
+            </div>
+        </div>
+
+        <!-- ABC SONG (YouTube) -->
+        <div id="game-sensory-abcsong" class="screen">
+            <button class="back-btn" onclick="stopAbcSong(); goBackToSubmenu('sensory')">← Back</button>
+            <div class="game-box" style="max-width:720px;">
+                <div class="game-prompt">ABC Song 🔤</div>
+                <div id="abc-player-wrap" style="width:100%; max-width:560px; aspect-ratio:16/9; background:#1a1a2e; border-radius:20px; overflow:hidden; margin:12px auto; position:relative;">
+                    <iframe id="abc-iframe"
+                        title="ABC Song"
+                        style="width:100%; height:100%; border:0;"
+                        src="https://www.youtube.com/embed/ccEpTTZW34g?rel=0&modestbranding=1&playsinline=1&origin=https://0mrcrazy0.github.io"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                        allowfullscreen
+                        referrerpolicy="strict-origin-when-cross-origin">
+                    </iframe>
+                </div>
+                <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:16px;">
+                    <button class="play-btn" onclick="playAbcSong()">▶ Play in game</button>
+                    <button class="back-btn" onclick="stopAbcSong()" style="margin-bottom:0;">■ Stop</button>
+                    <button class="play-btn" onclick="fullscreenAbcSong()" style="background:linear-gradient(135deg,#457B9D,#9B5DE5);">⛶ Fullscreen</button>
+                    <button class="play-btn" onclick="window.open('https://www.youtube.com/watch?v=ccEpTTZW34g','_blank')" style="background:linear-gradient(135deg,#E63946,#F77F00);">▶ Open YouTube</button>
+                </div>
+                <p style="color: var(--text-muted); font-style: italic; margin-top:12px; font-size:0.95rem;">
+                    Needs internet. If you see a black screen, tap <strong>Open YouTube</strong> — that always works.
+                </p>
+            </div>
+        </div>
+
+        <!-- STAGE 1-2 GAME A: COLOR BLOBS -->
+        <div id="game-colors-blobs" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('colors')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt" id="prompt-colors">Tap the Pink 🩷</div>
+                <div class="color-options" id="options-colors"></div>
+            </div>
+        </div>
+
+        <!-- STAGE 1-2 GAME B: FLASHCARDS -->
+        <div id="game-colors-flashcards" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('colors')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt">Tap the card to see a new color 🎨</div>
+                <div class="flashcard" id="card-display" onclick="nextFlashcard()">
+                    <div class="flashcard-inner" id="card-color-inner"></div>
+                    <div class="flashcard-text" id="card-color-text">Pink</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STAGE 2-3 GAME A: DRAG SHAPES -->
+        <div id="game-shapes-match" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('shapes')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt">Drag the shape into its home!</div>
+                <div class="drag-workspace" id="workspace-shapes"></div>
+                <p style="color: var(--text-muted); font-size: 0.95rem;">Drag with your finger or mouse 👆</p>
+            </div>
+        </div>
+
+        <!-- STAGE 2-3 GAME B: SIZE SORTING -->
+        <div id="game-shapes-size" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('shapes')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt" id="prompt-size">Tap the BIGGEST one!</div>
+                <div class="color-options" id="options-sizes"></div>
+            </div>
+        </div>
+
+        <!-- STAGE 3-4 GAME A: STAR COUNTING -->
+        <div id="game-math-count" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('math')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt">Count the stars ⭐</div>
+                <div class="math-display" id="display-math"></div>
+                <div class="math-answers" id="answers-math"></div>
+            </div>
+        </div>
+
+        <!-- STAGE 3-4 GAME B: MORE OR LESS -->
+        <div id="game-math-comparison" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('math')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt" id="prompt-comparison">Which side has MORE stars?</div>
+                <div class="comparison-layout">
+                    <div class="comparison-box" id="comp-left" onclick="checkComparison('left')"></div>
+                    <div class="comparison-box" id="comp-right" onclick="checkComparison('right')"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STAGE 4-5 GAME A: VOCABULARY MATCH -->
+        <div id="game-english-match" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('english')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt" id="prompt-english">Find the picture that starts with this letter 🔤</div>
+                <div style="font-size:6rem; font-weight:bold; color:var(--stella-purple);" id="display-english">A</div>
+                <div class="abc-options" id="options-english"></div>
+            </div>
+        </div>
+
+        <!-- STAGE 4-5 GAME B: ALPHABET POP -->
+        <div id="game-english-pop" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('english')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt" id="prompt-pop">Pop the letter A</div>
+                <div class="bubble-chamber" id="chamber-bubbles"></div>
+            </div>
+        </div>
+
+        <!-- EXTRA COLOR / SHAPE / MATH / ENGLISH SCREENS (voice-first) -->
+        <div id="game-colors-say" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('colors')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt">Listen to the color</div>
+                <div class="color-options" id="options-colors-say"></div>
+            </div>
+        </div>
+        <div id="game-colors-match" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('colors')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt">Find the matching colors</div>
+                <div class="color-options" id="options-colors-match"></div>
+            </div>
+        </div>
+        <div id="game-shapes-find" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('shapes')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt" id="prompt-shapes-find">Find the shape</div>
+                <div class="color-options" id="options-shapes-find"></div>
+            </div>
+        </div>
+        <div id="game-shapes-pop" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('shapes')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt">Pop the shapes</div>
+                <div class="color-options" id="options-shapes-pop"></div>
+            </div>
+        </div>
+        <div id="game-math-touch" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('math')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt" id="prompt-math-touch">Tap the number</div>
+                <div class="math-answers" id="answers-math-touch"></div>
+            </div>
+        </div>
+        <div id="game-math-countwith" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('math')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt">Count the stars</div>
+                <div class="math-display" id="display-math-countwith"></div>
+                <div class="math-answers" id="answers-math-countwith"></div>
+            </div>
+        </div>
+        <div id="game-english-sounds" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('english')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt" id="prompt-english-sounds">Letter sounds</div>
+                <div style="font-size:6rem; font-weight:bold; color:var(--stella-purple);" id="display-english-sounds">A</div>
+                <div id="options-english-sounds"></div>
+            </div>
+        </div>
+        <div id="game-english-words" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('english')">← Back</button>
+            <div class="game-box">
+                <div class="game-prompt" id="prompt-english-words">Picture words</div>
+                <div class="abc-options" id="options-english-words"></div>
+            </div>
+        </div>
+
+
+        <!-- CREATE STUDIO (shared by 4 create mini-games) -->
+        <div id="game-create-studio" class="screen">
+            <button class="back-btn" onclick="goBackToSubmenu('create')">← Back</button>
+            <div class="game-box paint-game-box">
+                <div class="game-prompt" id="prompt-paint">Finger Paint</div>
+                <div class="paint-toolbar sticky-tools" id="paint-brushes">
+                    <button type="button" class="paint-mode-btn brush-btn active" data-brush="thin" onclick="setPaintBrush('thin')">Thin</button>
+                    <button type="button" class="paint-mode-btn brush-btn" data-brush="normal" onclick="setPaintBrush('normal')">Normal</button>
+                    <button type="button" class="paint-mode-btn brush-btn" data-brush="thick" onclick="setPaintBrush('thick')">Thick</button>
+                    <button type="button" class="paint-mode-btn brush-btn" data-brush="eraser" id="paint-eraser-btn" onclick="setPaintBrush('eraser')">Eraser</button>
+                </div>
+                <div class="paint-colors sticky-tools" id="paint-colors"></div>
+                <canvas id="paint-canvas" width="860" height="520"></canvas>
+                <div class="paint-toolbar">
+                    <button type="button" onclick="clearPaint()">Clear</button>
+                    <button type="button" id="paint-next-btn" onclick="skipPaintGuide()">Next</button>
+                    <button type="button" class="play-btn" id="paint-done-btn" style="display:none;padding:10px 20px;font-size:1rem;" onclick="completePaintGuide()">Done ✓</button>
+                </div>
+                <p id="paint-hint" style="color:var(--text-muted);font-size:0.95rem;">Draw with your finger or mouse</p>
+            </div>
+        </div>
+
+    </div><!-- end .container -->
+
+    <div id="install-banner" style="display:none; position:fixed; bottom:0; left:0; right:0; background:white; padding:14px 18px; box-shadow:0 -6px 20px rgba(0,0,0,0.1); z-index:1000; text-align:center; border-top:4px solid #FFC300;">
+        <p style="margin:0 0 10px; font-weight:bold; font-size:1.1rem; color:#2B2D42;">Add Stella's Game to your home screen</p>
+        <button id="install-btn" class="play-btn" style="margin:0 8px;">Install</button>
+        <button id="install-dismiss" class="back-btn" style="margin:0 8px; box-shadow:none; border-width:2px;">Maybe later</button>
+    </div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <script>
+        // --- OFFLINE SERVICE WORKER SETUP ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    reg.update(); // check for new version every load
+                }).catch(err => console.error(err));
+            });
+        }
+
+        // --- POLYPHONIC AUDIO ENGINE + VOICE (Web Speech API) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Remember last targets so rounds feel varied
+        let lastShapeTarget = null;
+        let lastColorTarget = null;
+        let lastNumberTarget = null;
+        let lastLetterTarget = null;
+
+        function pickDifferent(list, last) {
+            if (list.length <= 1) return list[0];
+            let choice;
+            do { choice = list[Math.floor(Math.random() * list.length)]; }
+            while (choice === last);
+            return choice;
+        }
+
+
+        // Warm, friendly voice for little ears
+        // --- MALE VOICE ENGINE (soothing, clear English) ---
+        let cachedMaleVoice = null;
+
+        function scoreMaleVoice(v) {
+            const name = (v.name || '') + ' ' + (v.voiceURI || '');
+            const lang = (v.lang || '');
+            let score = 0;
+            if (!/en/i.test(lang)) return -100;
+            // Hard reject known female voices
+            if (/female|zira|samantha|karen|moira|victoria|fiona|tessa|susan|hazel|catherine|heather|linda|nancy|google uk english female|microsoft zira/i.test(name)) {
+                return -50;
+            }
+            // Strong male signals
+            if (/\bmale\b/i.test(name)) score += 100;
+            if (/google uk english male/i.test(name)) score += 90;
+            if (/microsoft david|microsoft mark|microsoft george/i.test(name)) score += 85;
+            if (/daniel|david|james|thomas|arthur|aaron|brian|fred|alex|paul|rishi|ryan|gordon|bruce|tom|john|guy|george/i.test(name)) score += 70;
+            // Prefer UK/AU for a calm clear accent when available
+            if (/en-GB|en_GB|en-AU|en_AU/i.test(lang)) score += 15;
+            if (/en-US|en_US/i.test(lang)) score += 10;
+            // Local voices often clearer
+            if (v.localService) score += 5;
+            return score;
+        }
+
+        function getMaleVoice() {
+            const voices = speechSynthesis.getVoices() || [];
+            if (!voices.length) return null;
+            if (cachedMaleVoice) {
+                const still = voices.find(v => v.name === cachedMaleVoice.name && v.lang === cachedMaleVoice.lang);
+                if (still) return still;
+            }
+            let best = null;
+            let bestScore = -999;
+            for (const v of voices) {
+                const s = scoreMaleVoice(v);
+                if (s > bestScore) {
+                    bestScore = s;
+                    best = v;
+                }
+            }
+            // Only accept if we actually found something male-ish; otherwise still use best English but very low pitch
+            cachedMaleVoice = best;
+            return best;
+        }
+
+        // Speech queue — never cuts off the previous line mid-sentence
+        let _speakQueue = [];
+        let _speakBusy = false;
+
+        function speak(text, opts = {}) {
+            _speakQueue.push({ text: String(text), opts: opts || {} });
+            _processSpeakQueue();
+        }
+
+        function _processSpeakQueue() {
+            if (_speakBusy) return;
+            const job = _speakQueue.shift();
+            if (!job) return;
+            if (!window.speechSynthesis) {
+                if (job.opts.onEnd) job.opts.onEnd();
+                _processSpeakQueue();
+                return;
+            }
+            _speakBusy = true;
+            try {
+                const u = new SpeechSynthesisUtterance(job.text);
+                u.rate = job.opts.rate != null ? job.opts.rate : 0.9;
+                u.volume = 1;
+                const voice = getMaleVoice();
+                if (voice) {
+                    u.voice = voice;
+                    const name = (voice.name || '') + ' ' + (voice.voiceURI || '');
+                    const clearlyMale = /\bmale\b|david|daniel|james|thomas|arthur|aaron|brian|fred|alex|microsoft david|google uk english male/i.test(name)
+                        && !/female/i.test(name);
+                    u.pitch = job.opts.pitch != null ? job.opts.pitch : (clearlyMale ? 0.9 : 0.65);
+                } else {
+                    u.pitch = job.opts.pitch != null ? job.opts.pitch : 0.65;
+                }
+                const finish = () => {
+                    _speakBusy = false;
+                    try { if (job.opts.onEnd) job.opts.onEnd(); } catch(e) {}
+                    _processSpeakQueue();
+                };
+                u.onend = finish;
+                u.onerror = finish;
+                speechSynthesis.speak(u);
+            } catch (e) {
+                _speakBusy = false;
+                if (job.opts.onEnd) job.opts.onEnd();
+                _processSpeakQueue();
+            }
+        }
+
+        function clearSpeakQueue() {
+            _speakQueue = [];
+            _speakBusy = false;
+            try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch(e) {}
+        }
+
+        // Warm up + refresh when browser loads voice list
+        if (window.speechSynthesis) {
+            speechSynthesis.getVoices();
+            speechSynthesis.onvoiceschanged = () => {
+                cachedMaleVoice = null;
+                getMaleVoice();
+            };
+        }
+
+        // Stop everything when leaving a game (speech, video, animal audio, timers)
+        let activeAnimalAudio = null;
+        let activeGameTimers = [];
+        let gameSession = 0; // bumped every launch/exit so late timeouts do nothing
+
+        function trackTimeout(id) {
+            activeGameTimers.push(id);
+            return id;
+        }
+
+        // Only run callback if user is still in the same game session
+        function scheduleNext(fn, ms) {
+            const session = gameSession;
+            const id = setTimeout(() => {
+                if (session !== gameSession) return;
+                fn();
+            }, ms);
+            return trackTimeout(id);
+        }
+
+        function stopAllGameActivity() {
+            gameSession++; // invalidate pending scheduleNext callbacks
+            clearSpeakQueue();
+            try { if (typeof stopAbcSong === 'function') stopAbcSong(); } catch(e) {}
+            if (activeAnimalAudio) {
+                try { activeAnimalAudio.pause(); activeAnimalAudio.currentTime = 0; } catch(e) {}
+                activeAnimalAudio = null;
+            }
+            activeGameTimers.forEach(id => { try { clearTimeout(id); clearInterval(id); } catch(e) {} });
+            activeGameTimers = [];
+            document.querySelectorAll('.lit-up').forEach(el => el.classList.remove('lit-up'));
+            // Stop any HTMLAudioElements that might still be playing
+            document.querySelectorAll('audio').forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e) {} });
+        }
+
+        // Natural teacher-style praise (short phrases TTS reads clearly)
+        const PRAISE = [
+            'Well done!',
+            'Yes!',
+            'Great job!',
+            "That's right!",
+            'You got it!',
+            'Nice work!',
+            'Brilliant!',
+            'Good job!'
+        ];
+        function praise(onEnd) {
+            const line = PRAISE[Math.floor(Math.random() * PRAISE.length)];
+            speak(line, onEnd ? { onEnd: onEnd } : {});
+            return line;
+        }
+
+        function lightUp(el) {
+            if (!el) return;
+            el.classList.add('lit-up');
+            setTimeout(() => el.classList.remove('lit-up'), 900);
+        }
+
+        function playAnimalSound(fileBase) {
+            // Real MP3 from /sounds folder (cow.mp3, duck.mp3, ...)
+            if (activeAnimalAudio) {
+                try { activeAnimalAudio.pause(); } catch(e) {}
+            }
+            const audio = new Audio('sounds/' + fileBase + '.mp3');
+            activeAnimalAudio = audio;
+            audio.play().catch(() => {
+                // Fallback to soft chime if file missing
+                playSound('success');
+            });
+            return audio;
+        }
+
+        function playSound(variant) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (variant === 'success') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+            } else if (variant === 'fail') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+            } else if (variant === 'victory') {
+                const notes = [523.25, 587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50];
+                notes.forEach((f, idx) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = 'sine'; o.frequency.value = f;
+                    o.connect(g); g.connect(audioCtx.destination);
+                    g.gain.setValueAtTime(0.12, audioCtx.currentTime + idx * 0.05);
+                    g.gain.exponentialRampToValueAtTime(0.002, audioCtx.currentTime + idx * 0.05 + 0.3);
+                    o.start(audioCtx.currentTime + idx * 0.05); o.stop(audioCtx.currentTime + idx * 0.05 + 0.3);
+                });
+            } else if (variant === 'moo') {
+                // Simple low "moo" approximation
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.6);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.7);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.7);
+            } else if (variant === 'quack') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(280, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+            } else if (variant === 'baa') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(180, audioCtx.currentTime + 0.4);
+                gain.gain.setValueAtTime(0.14, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+            } else if (variant === 'oink') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(140, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            } else if (variant === 'cluck') {
+                osc.type = 'square';
+                [0, 0.08, 0.16].forEach((t, i) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = 'square'; o.frequency.value = 400 - i * 40;
+                    o.connect(g); g.connect(audioCtx.destination);
+                    g.gain.setValueAtTime(0.08, audioCtx.currentTime + t);
+                    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + t + 0.08);
+                    o.start(audioCtx.currentTime + t); o.stop(audioCtx.currentTime + t + 0.08);
+                });
+                return;
+            } else if (variant === 'woof') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(90, audioCtx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.35);
+            } else {
+                osc.type = 'sine';
+                const frequencies = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33];
+                const freq = frequencies[variant % frequencies.length] || 440;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+            }
+        }
+
+        // --- SHIMMERING CONFETTI REWARD ---
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let confetti = [], confettiId = null;
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+        function triggerConfetti() {
+            playSound('victory');
+            canvas.style.display = 'block';
+            confetti = [];
+            const colors = ['#E63946', '#F77F00', '#FCBF49', '#2A9D8F', '#457B9D', '#9B5DE5', '#FF6B9D', '#FFC300'];
+            for (let i = 0; i < 100; i++) {
+                confetti.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    r: Math.random() * 6 + 4,
+                    d: Math.random() * canvas.height,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    tilt: Math.random() * 10 - 5,
+                    tiltAngleIncremental: Math.random() * 0.05 + 0.02,
+                    tiltAngle: 0
+                });
+            }
+            if (confettiId) cancelAnimationFrame(confettiId);
+            animateConfetti();
+            setTimeout(() => { canvas.style.display = 'none'; cancelAnimationFrame(confettiId); }, 2200);
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let active = false;
+            confetti.forEach((p) => {
+                p.tiltAngle += p.tiltAngleIncremental; p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+                p.tilt = Math.sin(p.tiltAngle) * 12;
+                if (p.y <= canvas.height) active = true;
+                ctx.beginPath(); ctx.lineWidth = p.r; ctx.strokeStyle = p.color;
+                ctx.moveTo(p.x + p.tilt + p.r/2, p.y); ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r/2);
+                ctx.stroke();
+            });
+            if (active) confettiId = requestAnimationFrame(animateConfetti);
+        }
+
+        // --- SUBMENU SELECTION MECHANICS ---
+        const SUBMENU_DATA = {
+            sensory: [
+                { name: "👀 Dancing Shapes", desc: "Pretty shapes that move", run: "sensory-mobile" },
+                { name: "🎵 Music Pads", desc: "Tap the pads and hear nice sounds", run: "sensory-soundboard" },
+                { name: "🐄 Farm Animals", desc: "Touch the animals and hear them talk", run: "sensory-farm" },
+                { name: "👋 Peekaboo", desc: "Hide and find the happy faces", run: "sensory-peekaboo" },
+                { name: "🔤 ABC Song", desc: "Watch and sing the alphabet song", run: "sensory-abcsong" }
+            ],
+            colors: [
+                { name: "🌈 Color Blobs", desc: "Find the right color", run: "colors-blobs" },
+                { name: "🃏 Color Cards", desc: "Tap the card to learn the color names", run: "colors-flashcards" },
+                { name: "🗣️ Say the Color", desc: "Hear the color name out loud", run: "colors-say" },
+                { name: "🎯 Color Match", desc: "Match the same colors together", run: "colors-match" }
+            ],
+            shapes: [
+                { name: "🧩 Shape Homes", desc: "Help the shapes find their homes", run: "shapes-match" },
+                { name: "📏 Big or Small", desc: "Find the biggest or the small one", run: "shapes-size" },
+                { name: "🔵 Find the Shape", desc: "Tap the shape you hear", run: "shapes-find" },
+                { name: "✨ Shape Pop", desc: "Pop the shapes that match", run: "shapes-pop" }
+            ],
+            math: [
+                { name: "⭐ Star Counter", desc: "Count the stars (1 to 20)", run: "math-count" },
+                { name: "⚖️ More or Less", desc: "Which side has more stars?", run: "math-comparison" },
+                { name: "🔢 Number Touch", desc: "Tap the number you hear", run: "math-touch" },
+                { name: "1️⃣ Count with Me", desc: "Count out loud together", run: "math-countwith" }
+            ],
+            english: [
+                { name: "🔤 Letter Match", desc: "Match the letter to its picture", run: "english-match" },
+                { name: "🫧 Bubble Pop", desc: "Pop the bubbles with the right letter", run: "english-pop" },
+                { name: "📣 Letter Sounds", desc: "Hear the letter and its sound", run: "english-sounds" },
+                { name: "🖼️ Picture Words", desc: "Hear the word for each picture", run: "english-words" }
+            ],
+            create: [
+                { name: "🎨 Finger Paint", desc: "Free draw like a simple paint app", run: "create-free" },
+                { name: "🔤 Letter Paint", desc: "Trace big letters A to Z", run: "create-letters" },
+                { name: "🔢 Number Paint", desc: "Trace numbers 0 to 9", run: "create-numbers" },
+                { name: "🔷 Shape Paint", desc: "Trace circles, squares, stars and more", run: "create-shapes" }
+            ]
+        };
+
+        function showMenu() {
+            stopAllGameActivity();
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen-menu').classList.add('active');
+        }
+
+        function showSubmenu(category) {
+            stopAllGameActivity();
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const container = document.getElementById('submenu-cards-container');
+            container.innerHTML = '';
+            
+            const titles = {
+                sensory: '👀 Sensory Fun',
+                colors: '🎨 Colors',
+                shapes: '🔷 Shapes',
+                math: '🔢 Numbers',
+                english: '🔤 Letters',
+                create: '🎨 Create'
+            };
+            document.getElementById('submenu-title').innerText = titles[category] || 'Choose a Game';
+            
+            SUBMENU_DATA[category].forEach(game => {
+                const card = document.createElement('div');
+                card.className = 'game-select-card';
+                card.innerHTML = `<h4>${game.name}</h4><p>${game.desc}</p><button class="play-btn">Play</button>`;
+                card.onclick = () => launchGame(game.run);
+                container.appendChild(card);
+            });
+            document.getElementById('screen-submenu').classList.add('active');
+        }
+
+        function goBackToSubmenu(category) {
+            stopAllGameActivity();
+            showSubmenu(category);
+        }
+
+        function launchGame(gameId) {
+            stopAllGameActivity();
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            // Four create games share one studio screen
+            const screenId = gameId.startsWith('create-') ? 'create-studio' : gameId;
+            const el = document.getElementById(`game-${screenId}`);
+            if (el) el.classList.add('active');
+            
+            if (gameId === 'sensory-mobile') initSensoryMobile();
+            if (gameId === 'sensory-soundboard') initSensorySoundboard();
+            if (gameId === 'sensory-farm') initSensoryFarm();
+            if (gameId === 'sensory-peekaboo') initSensoryPeekaboo();
+            if (gameId === 'sensory-abcsong') initAbcSong();
+            if (gameId === 'colors-blobs') initColorsBlobs();
+            if (gameId === 'colors-flashcards') initColorsFlashcards();
+            if (gameId === 'colors-say') initColorsSay();
+            if (gameId === 'colors-match') initColorsMatch();
+            if (gameId === 'shapes-match') initShapesMatch();
+            if (gameId === 'shapes-size') initShapesSize();
+            if (gameId === 'shapes-find') initShapesFind();
+            if (gameId === 'shapes-pop') initShapesPop();
+            if (gameId === 'math-count') initMathCount();
+            if (gameId === 'math-comparison') initMathComparison();
+            if (gameId === 'math-touch') initMathTouch();
+            if (gameId === 'math-countwith') initMathCountWith();
+            if (gameId === 'english-match') initEnglishMatch();
+            if (gameId === 'english-pop') initEnglishPop();
+            if (gameId === 'english-sounds') initEnglishSounds();
+            if (gameId === 'english-words') initEnglishWords();
+            if (gameId === 'create-free') initCreateStudio('paint');
+            if (gameId === 'create-letters') initCreateStudio('letters');
+            if (gameId === 'create-numbers') initCreateStudio('numbers');
+            if (gameId === 'create-shapes') initCreateStudio('shapes');
+        }
+
+        // --- STAGE 0-1 GAME A: VISUAL MOBILE ---
+        function initSensoryMobile() {
+            speak("Look at the pretty shapes!");
+            const container = document.getElementById('canvas-sensory'); 
+            container.innerHTML = '';
+            const svgs = [
+                `<svg class="mobile-element" viewBox="0 0 100 100" onclick="playSound(1)"><circle cx="50" cy="50" r="40" fill="#000" stroke="#FFF" stroke-width="6"/></svg>`,
+                `<svg class="mobile-element" viewBox="0 0 100 100" onclick="playSound(3)"><rect x="15" y="15" width="70" height="70" fill="none" stroke="#000" stroke-width="10"/></svg>`,
+                `<svg class="mobile-element" viewBox="0 0 100 100" onclick="playSound(5)"><polygon points="50,10 90,85 10,85" fill="var(--stella-dark-pink)"/></svg>`
+            ];
+            svgs.forEach(s => container.innerHTML += s);
+        }
+
+        // --- STAGE 0-1 GAME B: AUDIO SOUNDBOARD ---
+        function initSensorySoundboard() {
+            speak("Tap the music pads!");
+            const pads = document.getElementById('soundboard-pads'); pads.innerHTML = '';
+            const hex = ['#E63946', '#F77F00', '#FCBF49', '#2A9D8F', '#457B9D', '#9B5DE5', '#FF6B9D', '#06D6A0', '#4CC9F0'];
+            for(let i=0; i<9; i++) {
+                const pad = document.createElement('div');
+                pad.className = 'sound-pad'; 
+                pad.style.backgroundColor = hex[i];
+                pad.onclick = () => playSound(i);
+                pads.appendChild(pad);
+            }
+        }
+
+        // --- STAGE 0-1 GAME C: FARM ANIMALS (real MP3 sounds) ---
+        const FARM_ANIMALS = [
+            { name: 'Cow',     emoji: '🐄', file: 'cow',     phrase: 'Cow.' },
+            { name: 'Duck',    emoji: '🦆', file: 'duck',    phrase: 'Duck.' },
+            { name: 'Sheep',   emoji: '🐑', file: 'sheep',   phrase: 'Sheep.' },
+            { name: 'Pig',     emoji: '🐷', file: 'pig',     phrase: 'Pig.' },
+            { name: 'Chicken', emoji: '🐔', file: 'chicken', phrase: 'Chicken.' },
+            { name: 'Dog',     emoji: '🐶', file: 'dog',     phrase: 'Dog.' },
+            { name: 'Cat',     emoji: '🐱', file: 'cat',     phrase: 'Cat.' },
+            { name: 'Goat',    emoji: '🐐', file: 'goat',    phrase: 'Goat.' },
+            { name: 'Rooster', emoji: '🐓', file: 'rooster', phrase: 'Rooster.' }
+        ];
+        function initSensoryFarm() {
+            speak('Touch the animals!');
+            const grid = document.getElementById('farm-animals');
+            grid.innerHTML = '';
+            document.getElementById('prompt-farm').innerText = 'Touch the animals!';
+            FARM_ANIMALS.forEach(a => {
+                const card = document.createElement('div');
+                card.className = 'farm-animal';
+                card.innerHTML = `<div class="emoji">${a.emoji}</div><div class="label">${a.name}</div>`;
+                card.onclick = () => {
+                    lightUp(card);
+                    // Name first, then real animal sound (no talking over the sound)
+                    speak(a.phrase);
+                    scheduleNext(() => playAnimalSound(a.file), 600);
+                };
+                grid.appendChild(card);
+            });
+        }
+
+        // --- STAGE 0-1 GAME D: PEEKABOO ---
+        function initSensoryPeekaboo() {
+            speak("Where is the happy face?");
+            const area = document.getElementById('peekaboo-area');
+            area.innerHTML = '';
+            document.getElementById('prompt-peekaboo').innerText = 'Where is the happy face?';
+            const faces = ['😊', '😄', '🥰', '😍'];
+            const winner = Math.floor(Math.random() * 3);
+            for (let i = 0; i < 3; i++) {
+                const door = document.createElement('div');
+                door.className = 'peek-door';
+                door.innerHTML = '🚪';
+                door.onclick = () => {
+                    if (door.classList.contains('open')) return;
+                    door.classList.add('open');
+                    if (i === winner) {
+                        door.innerHTML = faces[Math.floor(Math.random() * faces.length)];
+                        playSound('success');
+                        speak("Peekaboo! I see you!");
+                        scheduleNext(() => { triggerConfetti(); scheduleNext(() => initSensoryPeekaboo(), 2000); }, 800);
+                    } else {
+                        door.innerHTML = '🌙';
+                        playSound('fail');
+                        speak("Try another one");
+                    }
+                };
+                area.appendChild(door);
+            }
+        }
+
+        // --- ABC SONG (YouTube embed) ---
+        
+        function initAbcSong() {
+            speak("Let's sing the ABC song!");
+        }
+        function playAbcSong() {
+            const iframe = document.getElementById('abc-iframe');
+            if (!iframe) return;
+            iframe.src = 'https://www.youtube.com/embed/ccEpTTZW34g?autoplay=1&rel=0&modestbranding=1&playsinline=1';
+            speak('Sing along!');
+        }
+        function stopAbcSong() {
+            const iframe = document.getElementById('abc-iframe');
+            if (!iframe) return;
+            iframe.src = 'about:blank';
+            // restore embed without autoplay
+            scheduleNext(() => {
+                if (document.getElementById('game-sensory-abcsong')?.classList.contains('active')) {
+                    iframe.src = 'https://www.youtube.com/embed/ccEpTTZW34g?rel=0&modestbranding=1&playsinline=1';
+                }
+            }, 100);
+        }
+        function fullscreenAbcSong() {
+            const wrap = document.getElementById('abc-player-wrap');
+            if (wrap && wrap.requestFullscreen) wrap.requestFullscreen();
+            else if (wrap && wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
+            else window.open('https://www.youtube.com/watch?v=ccEpTTZW34g', '_blank');
+        }
+
+
+        // --- STAGE 1-2 GAME A: COLOR BLOBS ---
+        // Classic rainbow colors — every emoji matches the color perfectly
+        const COLORS = [
+            {name: 'Red',    hex: '#E63946', emoji: '❤️'},
+            {name: 'Orange', hex: '#F77F00', emoji: '🧡'},
+            {name: 'Yellow', hex: '#FCBF49', emoji: '💛'},
+            {name: 'Green',  hex: '#2A9D8F', emoji: '💚'},
+            {name: 'Blue',   hex: '#457B9D', emoji: '💙'},
+            {name: 'Purple', hex: '#9B5DE5', emoji: '💜'},
+            {name: 'Pink',   hex: '#FF6B9D', emoji: '🩷'}
+        ];
+        function initColorsBlobs() {
+            const pool = [...COLORS].sort(() => Math.random() - 0.5).slice(0, 4);
+            // Prefer a different color than last time
+            let target = pool[Math.floor(Math.random() * pool.length)];
+            if (lastColorTarget && pool.length > 1) {
+                const others = pool.filter(c => c.name !== lastColorTarget);
+                if (others.length) target = others[Math.floor(Math.random() * others.length)];
+            }
+            lastColorTarget = target.name;
+            document.getElementById('prompt-colors').innerText = `Tap the ${target.name} ${target.emoji}`;
+            speak(`Tap the ${target.name}`);
+            
+            const options = document.getElementById('options-colors'); options.innerHTML = '';
+            pool.forEach(c => {
+                const b = document.createElement('div'); 
+                b.className = 'color-blob'; 
+                b.style.backgroundColor = c.hex;
+                b.title = c.name;
+                b.onclick = () => {
+                    if (c.name === target.name) {
+                        lightUp(b);
+                        playSound('success');
+                        praise();
+                        triggerConfetti();
+                        trackTimeout(scheduleNext(() => initColorsBlobs(), 1500));
+                    } else {
+                        playSound('fail');
+                        speak('Try again');
+                    }
+                };
+                options.appendChild(b);
+            });
+        }
+
+        // --- STAGE 1-2 GAME B: FLASHCARDS ---
+        let currentFlashIdx = 0;
+        function initColorsFlashcards() {
+            speak("Tap the card to see a new color");
+            nextFlashcard();
+        }
+        function nextFlashcard() {
+            currentFlashIdx = (currentFlashIdx + 1) % COLORS.length;
+            const c = COLORS[currentFlashIdx];
+            document.getElementById('card-color-inner').style.backgroundColor = c.hex;
+            document.getElementById('card-color-text').innerText = `${c.emoji} ${c.name}`;
+            playSound(currentFlashIdx);
+            speak(c.name);
+        }
+
+        // --- STAGE 2-3 GAME A: PUZZLE MATCHING ---
+        // Each shape gets its own bright rainbow color
+        const GEOMETRIES = [
+            {id: 'circle',   color: '#E63946', svg: '<circle cx="50" cy="50" r="40" fill="COLOR"/>'},
+            {id: 'square',   color: '#F77F00', svg: '<rect x="15" y="15" width="70" height="70" rx="10" fill="COLOR"/>'},
+            {id: 'triangle', color: '#FCBF49', svg: '<polygon points="50,15 90,85 10,85" fill="COLOR"/>'},
+            {id: 'star',     color: '#2A9D8F', svg: '<polygon points="50,5 64,36 98,36 70,57 81,91 50,70 19,91 30,57 2,36 36,36" fill="COLOR"/>'}
+        ];
+        function initShapesMatch() {
+            speak("Drag each shape into its home");
+            const workspace = document.getElementById('workspace-shapes'); 
+            workspace.innerHTML = '';
+            workspace.style.position = 'relative';
+            
+            // Responsive layout: 4 slots across top, pieces bottom
+            const w = workspace.clientWidth || 600;
+            const slotSize = Math.min(90, Math.floor((w - 40) / 4));
+            const gap = Math.floor((w - slotSize * 4) / 5);
+            
+            GEOMETRIES.forEach((g, idx) => {
+                const leftPos = gap + idx * (slotSize + gap);
+                
+                const slot = document.createElement('div');
+                slot.className = 'interactive-slot'; 
+                slot.id = `slot-${g.id}`;
+                slot.dataset.shape = g.id;
+                slot.style.width = slotSize + 'px';
+                slot.style.height = slotSize + 'px';
+                slot.style.left = leftPos + 'px'; 
+                slot.style.top = '20px';
+                // Light outline version of the shape color
+                slot.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${g.svg.replace('COLOR', g.color + '33')}</svg>`;
+                workspace.appendChild(slot);
+
+                const item = document.createElement('div');
+                item.className = 'interactive-item'; 
+                item.id = `piece-${g.id}`;
+                item.dataset.shape = g.id;
+                item.style.width = slotSize + 'px';
+                item.style.height = slotSize + 'px';
+                item.style.left = leftPos + 'px'; 
+                item.style.top = (slotSize + 50) + 'px';
+                item.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${g.svg.replace('COLOR', g.color)}</svg>`;
+                workspace.appendChild(item);
+
+                setupPointerDrag(item, slot, g.id);
+            });
+        }
+
+        function setupPointerDrag(element, targetSlot, shapeId) {
+            let activeDrag = false;
+            let startX, startY, initialLeft, initialTop;
+            let originLeft, originTop;
+
+            const onDown = (e) => {
+                if (element.style.pointerEvents === 'none') return;
+                e.preventDefault();
+                activeDrag = true;
+                element.setPointerCapture(e.pointerId);
+                element.style.zIndex = '200';
+                startX = e.clientX; 
+                startY = e.clientY;
+                initialLeft = parseFloat(element.style.left) || 0; 
+                initialTop = parseFloat(element.style.top) || 0;
+                originLeft = initialLeft;
+                originTop = initialTop;
+            };
+
+            const onMove = (e) => {
+                if (!activeDrag) return;
+                e.preventDefault();
+                const dx = e.clientX - startX; 
+                const dy = e.clientY - startY;
+                element.style.left = (initialLeft + dx) + 'px'; 
+                element.style.top = (initialTop + dy) + 'px';
+            };
+
+            const onUp = (e) => {
+                if (!activeDrag) return;
+                activeDrag = false;
+                try { element.releasePointerCapture(e.pointerId); } catch(_) {}
+                element.style.zIndex = '100';
+
+                const sRect = targetSlot.getBoundingClientRect();
+                const pRect = element.getBoundingClientRect();
+                // Use center-to-center distance for better snap feel
+                const sCx = sRect.left + sRect.width / 2;
+                const sCy = sRect.top + sRect.height / 2;
+                const pCx = pRect.left + pRect.width / 2;
+                const pCy = pRect.top + pRect.height / 2;
+                const distance = Math.hypot(sCx - pCx, sCy - pCy);
+
+                if (distance < 55) {
+                    // Snap perfectly
+                    element.style.left = targetSlot.style.left; 
+                    element.style.top = targetSlot.style.top;
+                    element.style.pointerEvents = 'none';
+                    element.classList.add('placed');
+                    // Fill the slot with the solid shape color
+                    const shape = GEOMETRIES.find(g => g.id === shapeId);
+                    if (shape) {
+                        targetSlot.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${shape.svg.replace('COLOR', shape.color)}</svg>`;
+                    }
+                    playSound('success');
+
+                    const placed = document.querySelectorAll('.interactive-item.placed');
+                    if (placed.length === 4) { 
+                        triggerConfetti(); 
+                        scheduleNext(() => initShapesMatch(), 2000); 
+                    }
+                } else {
+                    // Bounce back
+                    element.style.left = originLeft + 'px'; 
+                    element.style.top = originTop + 'px';
+                    playSound('fail');
+                }
+            };
+
+            element.addEventListener('pointerdown', onDown);
+            element.addEventListener('pointermove', onMove);
+            element.addEventListener('pointerup', onUp);
+            element.addEventListener('pointercancel', onUp);
+        }
+
+        // --- STAGE 2-3 GAME B: SIZE SORTING ---
+        function initShapesSize() {
+            const types = ['circle', 'square', 'star'];
+            const chosenType = types[Math.floor(Math.random() * types.length)];
+            const scales = [
+                {name: 'small', size: '55px'}, {name: 'medium', size: '90px'}, {name: 'BIGGEST', size: '140px'}
+            ];
+            
+            const rainbow = ['#E63946', '#F77F00', '#FCBF49', '#2A9D8F', '#457B9D', '#9B5DE5', '#FF6B9D'];
+            const shuffledColors = [...rainbow].sort(() => Math.random() - 0.5);
+            
+            const wantBiggest = Math.random() > 0.5;
+            const promptText = wantBiggest ? `Tap the BIGGEST one!` : `Tap the SMALL one!`;
+            document.getElementById('prompt-size').innerText = promptText;
+            speak(promptText);
+
+            const options = document.getElementById('options-sizes'); 
+            options.innerHTML = '';
+            options.style.alignItems = 'center';
+            [...scales].sort(() => Math.random() - 0.5).forEach((s, i) => {
+                const box = document.createElement('div');
+                box.style.width = s.size; 
+                box.style.height = s.size;
+                box.style.cursor = 'pointer';
+                box.style.display = 'flex'; 
+                box.style.alignItems = 'center';
+                box.style.justifyContent = 'center';
+                box.style.transition = 'transform 0.15s';
+                
+                const targetGeometry = GEOMETRIES.find(g => g.id === chosenType);
+                const fillColor = shuffledColors[i % shuffledColors.length];
+                box.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${targetGeometry.svg.replace('COLOR', fillColor)}</svg>`;
+                
+                box.onclick = () => {
+                    if ((wantBiggest && s.name === 'BIGGEST') || (!wantBiggest && s.name === 'small')) {
+                        playSound('success');
+                        praise();
+                        triggerConfetti(); scheduleNext(() => initShapesSize(), 1800);
+                    } else {
+                        playSound('fail');
+                        speak('Try again');
+                        box.style.transform = 'scale(0.9)';
+                        setTimeout(() => box.style.transform = '', 150);
+                    }
+                };
+                options.appendChild(box);
+            });
+        }
+
+        // --- STAGE 3-4 GAME A: STAR COUNTING ---
+        function initMathCount() {
+            // 1–20 is perfect for toddlers
+            let count;
+            do { count = Math.floor(Math.random() * 20) + 1; } while (count === lastNumberTarget);
+            lastNumberTarget = count;
+            speak("Count the stars");
+            const display = document.getElementById('display-math'); display.innerHTML = '';
+            const answers = document.getElementById('answers-math'); answers.innerHTML = '';
+            
+            const starColors = ['#E63946','#F77F00','#FCBF49','#2A9D8F','#457B9D','#9B5DE5','#FF6B9D'];
+            for(let i=0; i<count; i++) {
+                const col = starColors[i % starColors.length];
+                display.innerHTML += `<svg class="count-item" viewBox="0 0 100 100"><polygon points="50,5 64,36 98,36 70,57 81,91 50,70 19,91 30,57 2,36 36,36" fill="${col}" stroke="#fff" stroke-width="3"/></svg>`;
+            }
+
+            const choices = new Set([count]);
+            while(choices.size < 4) {
+                const n = Math.floor(Math.random() * 20) + 1;
+                choices.add(n);
+            }
+
+            Array.from(choices).sort((a,b)=>a-b).forEach(n => {
+                const b = document.createElement('button'); 
+                b.className = 'num-btn'; 
+                b.innerText = n;
+                b.onclick = () => {
+                    if (n === count) {
+                        lightUp(b);
+                        playSound('success');
+                        praise();
+                        triggerConfetti(); scheduleNext(() => initMathCount(), 1800);
+                    } else {
+                        playSound('fail');
+                        speak('Try again');
+                    }
+                };
+                answers.appendChild(b);
+            });
+        }
+
+        // --- STAGE 3-4 GAME B: MORE OR LESS ---
+        let correctCompSide = 'left';
+        function initMathComparison() {
+            const leftSide = document.getElementById('comp-left'); leftSide.innerHTML = '';
+            const rightSide = document.getElementById('comp-right'); rightSide.innerHTML = '';
+            
+            const leftCount = Math.floor(Math.random() * 9) + 1;
+            let rightCount = Math.floor(Math.random() * 9) + 1;
+            while(rightCount === leftCount) rightCount = Math.floor(Math.random() * 9) + 1;
+
+            // Different rainbow colors on each side for extra visual interest
+            const leftStar = `<svg width="38" height="38" viewBox="0 0 100 100"><polygon points="50,5 64,36 98,36 70,57 81,91 50,70 19,91 30,57 2,36 36,36" fill="#F77F00"/></svg>`;
+            const rightStar = `<svg width="38" height="38" viewBox="0 0 100 100"><polygon points="50,5 64,36 98,36 70,57 81,91 50,70 19,91 30,57 2,36 36,36" fill="#9B5DE5"/></svg>`;
+            for(let i=0; i<leftCount; i++) leftSide.innerHTML += leftStar;
+            for(let i=0; i<rightCount; i++) rightSide.innerHTML += rightStar;
+
+            const seekMore = Math.random() > 0.5;
+            const promptText = seekMore ? "Which side has MORE stars?" : "Which side has LESS stars?";
+            document.getElementById('prompt-comparison').innerText = promptText;
+            speak(promptText);
+            
+            if (seekMore) {
+                correctCompSide = leftCount > rightCount ? 'left' : 'right';
+            } else {
+                correctCompSide = leftCount < rightCount ? 'left' : 'right';
+            }
+        }
+        function checkComparison(side) {
+            if(side === correctCompSide) {
+                playSound('success');
+                praise();
+                triggerConfetti(); scheduleNext(() => initMathComparison(), 1800);
+            } else {
+                playSound('fail');
+                speak('Try again');
+            }
+        }
+
+        // --- STAGE 4-5 GAME A: VOCABULARY MATCH (FULL A–Z) ---
+        // Simple, colorful, recognizable pictures for every letter
+        const DICTIONARY = [
+            { L: 'A', name: 'Apple',  emoji: '🍎', svg: `<circle cx="50" cy="55" r="30" fill="#E63946"/><path d="M50,25 Q55,15 62,20" stroke="#8B5A2B" stroke-width="4" fill="none"/><ellipse cx="42" cy="22" rx="8" ry="5" fill="#2A9D8F" transform="rotate(-30 42 22)"/>` },
+            { L: 'B', name: 'Ball',   emoji: '⚽', svg: `<circle cx="50" cy="50" r="32" fill="#457B9D"/><path d="M18,50 Q50,20 82,50" stroke="#fff" stroke-width="3" fill="none"/><path d="M18,50 Q50,80 82,50" stroke="#fff" stroke-width="3" fill="none"/>` },
+            { L: 'C', name: 'Cat',    emoji: '🐱', svg: `<ellipse cx="50" cy="55" rx="28" ry="22" fill="#F77F00"/><circle cx="38" cy="40" r="8" fill="#F77F00"/><circle cx="62" cy="40" r="8" fill="#F77F00"/><circle cx="36" cy="38" r="2.5" fill="#2B2D42"/><circle cx="64" cy="38" r="2.5" fill="#2B2D42"/>` },
+            { L: 'D', name: 'Dog',    emoji: '🐶', svg: `<ellipse cx="50" cy="55" rx="26" ry="20" fill="#FCBF49"/><circle cx="35" cy="42" r="9" fill="#FCBF49"/><circle cx="65" cy="42" r="9" fill="#FCBF49"/><circle cx="33" cy="40" r="2.5" fill="#2B2D42"/><circle cx="67" cy="40" r="2.5" fill="#2B2D42"/>` },
+            { L: 'E', name: 'Egg',    emoji: '🥚', svg: `<ellipse cx="50" cy="52" rx="22" ry="28" fill="#FFF8E7" stroke="#FCBF49" stroke-width="3"/>` },
+            { L: 'F', name: 'Fish',   emoji: '🐟', svg: `<ellipse cx="48" cy="50" rx="26" ry="16" fill="#457B9D"/><polygon points="74,50 90,35 90,65" fill="#457B9D"/><circle cx="38" cy="46" r="3" fill="#fff"/>` },
+            { L: 'G', name: 'Grapes', emoji: '🍇', svg: `<circle cx="40" cy="40" r="11" fill="#9B5DE5"/><circle cx="58" cy="40" r="11" fill="#9B5DE5"/><circle cx="49" cy="55" r="11" fill="#9B5DE5"/><circle cx="40" cy="58" r="9" fill="#9B5DE5"/>` },
+            { L: 'H', name: 'House',  emoji: '🏠', svg: `<rect x="25" y="45" width="50" height="35" fill="#E63946"/><polygon points="20,45 50,20 80,45" fill="#F77F00"/><rect x="42" y="55" width="16" height="25" fill="#FCBF49"/>` },
+            { L: 'I', name: 'Ice',    emoji: '🍦', svg: `<polygon points="40,70 50,95 60,70" fill="#F77F00"/><circle cx="50" cy="50" r="20" fill="#FF6B9D"/><circle cx="50" cy="38" r="14" fill="#fff"/>` },
+            { L: 'J', name: 'Juice',  emoji: '🧃', svg: `<rect x="30" y="30" width="40" height="50" rx="6" fill="#F77F00"/><rect x="35" y="20" width="30" height="12" rx="3" fill="#FCBF49"/>` },
+            { L: 'K', name: 'Kite',   emoji: '🪁', svg: `<polygon points="50,15 80,50 50,85 20,50" fill="#9B5DE5"/><line x1="50" y1="85" x2="50" y2="100" stroke="#2B2D42" stroke-width="3"/>` },
+            { L: 'L', name: 'Leaf',   emoji: '🍃', svg: `<ellipse cx="50" cy="50" rx="28" ry="18" fill="#2A9D8F" transform="rotate(-30 50 50)"/><line x1="30" y1="60" x2="70" y2="40" stroke="#1B5E20" stroke-width="3"/>` },
+            { L: 'M', name: 'Moon',   emoji: '🌙', svg: `<circle cx="50" cy="50" r="28" fill="#FCBF49"/><circle cx="62" cy="42" r="20" fill="#FFF8F0"/>` },
+            { L: 'N', name: 'Nest',   emoji: '🪺', svg: `<ellipse cx="50" cy="60" rx="30" ry="15" fill="#8B5A2B"/><circle cx="42" cy="50" r="8" fill="#FCBF49"/><circle cx="58" cy="50" r="8" fill="#FCBF49"/>` },
+            { L: 'O', name: 'Orange', emoji: '🍊', svg: `<circle cx="50" cy="52" r="28" fill="#F77F00"/><ellipse cx="50" cy="28" rx="8" ry="5" fill="#2A9D8F"/>` },
+            { L: 'P', name: 'Pig',    emoji: '🐷', svg: `<ellipse cx="50" cy="55" rx="26" ry="20" fill="#FF6B9D"/><circle cx="38" cy="45" r="7" fill="#FF6B9D"/><circle cx="62" cy="45" r="7" fill="#FF6B9D"/><ellipse cx="50" cy="58" rx="10" ry="7" fill="#FF8FAB"/>` },
+            { L: 'Q', name: 'Queen', emoji: '👑', svg: `<polygon points="25,55 35,30 50,45 65,30 75,55" fill="#FCBF49"/><rect x="25" y="55" width="50" height="12" fill="#FCBF49"/><circle cx="35" cy="30" r="4" fill="#E63946"/><circle cx="50" cy="45" r="4" fill="#9B5DE5"/><circle cx="65" cy="30" r="4" fill="#457B9D"/>` },
+            { L: 'R', name: 'Rainbow',emoji: '🌈', svg: `<path d="M20,70 Q50,20 80,70" stroke="#E63946" stroke-width="6" fill="none"/><path d="M25,70 Q50,28 75,70" stroke="#F77F00" stroke-width="6" fill="none"/><path d="M30,70 Q50,36 70,70" stroke="#FCBF49" stroke-width="6" fill="none"/><path d="M35,70 Q50,44 65,70" stroke="#2A9D8F" stroke-width="6" fill="none"/>` },
+            { L: 'S', name: 'Sun',    emoji: '☀️', svg: `<circle cx="50" cy="50" r="20" fill="#FCBF49"/><line x1="50" y1="15" x2="50" y2="25" stroke="#F77F00" stroke-width="4"/><line x1="50" y1="75" x2="50" y2="85" stroke="#F77F00" stroke-width="4"/><line x1="15" y1="50" x2="25" y2="50" stroke="#F77F00" stroke-width="4"/><line x1="75" y1="50" x2="85" y2="50" stroke="#F77F00" stroke-width="4"/>` },
+            { L: 'T', name: 'Tree',   emoji: '🌳', svg: `<rect x="42" y="55" width="16" height="30" fill="#8B5A2B"/><circle cx="50" cy="40" r="25" fill="#2A9D8F"/>` },
+            { L: 'U', name: 'Umbrella',emoji:'☂️', svg: `<path d="M20,55 Q50,20 80,55" fill="#457B9D"/><line x1="50" y1="55" x2="50" y2="85" stroke="#2B2D42" stroke-width="4"/><path d="M50,85 Q58,90 55,95" stroke="#2B2D42" stroke-width="3" fill="none"/>` },
+            { L: 'V', name: 'Van',    emoji: '🚐', svg: `<rect x="15" y="40" width="70" height="30" rx="6" fill="#9B5DE5"/><rect x="55" y="30" width="25" height="15" fill="#457B9D"/><circle cx="30" cy="72" r="8" fill="#2B2D42"/><circle cx="70" cy="72" r="8" fill="#2B2D42"/>` },
+            { L: 'W', name: 'Watermelon',emoji:'🍉', svg: `<path d="M20,60 Q50,20 80,60 Q50,90 20,60" fill="#E63946"/><path d="M25,58 Q50,30 75,58" fill="#2A9D8F"/>` },
+            { L: 'X', name: 'Xylophone',emoji:'🎵', svg: `<rect x="15" y="30" width="12" height="40" fill="#E63946"/><rect x="30" y="35" width="12" height="35" fill="#F77F00"/><rect x="45" y="40" width="12" height="30" fill="#FCBF49"/><rect x="60" y="35" width="12" height="35" fill="#2A9D8F"/><rect x="75" y="30" width="12" height="40" fill="#457B9D"/>` },
+            { L: 'Y', name: 'Yacht',  emoji: '⛵', svg: `<polygon points="50,20 50,70 80,70" fill="#fff" stroke="#457B9D" stroke-width="3"/><rect x="20" y="70" width="60" height="12" rx="4" fill="#E63946"/><line x1="50" y1="20" x2="50" y2="70" stroke="#8B5A2B" stroke-width="3"/>` },
+            { L: 'Z', name: 'Zebra',  emoji: '🦓', svg: `<ellipse cx="50" cy="55" rx="28" ry="18" fill="#fff" stroke="#2B2D42" stroke-width="2"/><rect x="30" y="45" width="8" height="20" fill="#2B2D42"/><rect x="45" y="42" width="8" height="25" fill="#2B2D42"/><rect x="60" y="45" width="8" height="20" fill="#2B2D42"/>` }
+        ];
+
+        function initEnglishMatch() {
+            const pool = [...DICTIONARY].sort(() => Math.random() - 0.5).slice(0, 3);
+            let target = pool[Math.floor(Math.random() * pool.length)];
+            if (lastLetterTarget) {
+                const others = pool.filter(c => c.L !== lastLetterTarget);
+                if (others.length) target = others[Math.floor(Math.random() * others.length)];
+            }
+            lastLetterTarget = target.L;
+            document.getElementById('display-english').innerText = target.L;
+            speak(`Find the picture for the letter ${target.L}`);
+
+            const options = document.getElementById('options-english'); options.innerHTML = '';
+            pool.forEach(c => {
+                const choice = document.createElement('div'); 
+                choice.className = 'abc-choice';
+                choice.innerHTML = `<svg viewBox="0 0 100 100">${c.svg}</svg><span style="font-weight:bold">${c.name}</span>`;
+                choice.onclick = () => {
+                    if (c.L === target.L) {
+                        lightUp(choice);
+                        playSound('success');
+                        praise();
+                        triggerConfetti(); scheduleNext(() => initEnglishMatch(), 1800);
+                    } else {
+                        playSound('fail');
+                        speak('Try again');
+                    }
+                };
+                options.appendChild(choice);
+            });
+        }
+
+        // --- STAGE 4-5 GAME B: ALPHABET POP (FULL A–Z) ---
+        function initEnglishPop() {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            let targetLetter;
+            do { targetLetter = letters[Math.floor(Math.random() * letters.length)]; } while (targetLetter === lastLetterTarget);
+            lastLetterTarget = targetLetter;
+            document.getElementById('prompt-pop').innerText = `Pop the letter ${targetLetter}`;
+            speak(`Pop the letter ${targetLetter}`);
+            
+            const chamber = document.getElementById('chamber-bubbles'); 
+            chamber.innerHTML = '';
+            const chamberW = chamber.clientWidth || 500;
+            const chamberH = chamber.clientHeight || 280;
+            
+            // 2 targets + 4 distractors — non-overlapping positions so none hide behind others
+            const targetCount = 2;
+            const slots = [
+                [0.08, 0.12], [0.38, 0.10], [0.68, 0.12],
+                [0.12, 0.52], [0.42, 0.55], [0.70, 0.50]
+            ].sort(() => Math.random() - 0.5);
+            for(let i=0; i<6; i++) {
+                const b = document.createElement('div'); 
+                b.className = 'abc-bubble';
+                b.style.zIndex = String(10 + i);
+                const isTarget = i < targetCount;
+                if (isTarget) {
+                    b.innerText = targetLetter;
+                } else {
+                    let distractor;
+                    do { distractor = letters[Math.floor(Math.random() * 26)]; } while (distractor === targetLetter);
+                    b.innerText = distractor;
+                }
+                
+                const left = slots[i][0] * Math.max(chamberW - 90, 100);
+                const top  = slots[i][1] * Math.max(chamberH - 90, 80);
+                b.style.left = left + 'px';
+                b.style.top = top + 'px';
+                b.style.animationDelay = (i * 0.2) + 's';
+                
+                b.onclick = () => {
+                    if(b.innerText === targetLetter && b.style.transform !== 'scale(0)') {
+                        lightUp(b);
+                        b.style.transform = 'scale(0)';
+                        b.style.opacity = '0';
+                        b.style.pointerEvents = 'none';
+                        playSound('success');
+                        praise();
+                        
+                        scheduleNext(() => {
+                            const remainingTargets = Array.from(chamber.children).filter(el => 
+                                el.innerText === targetLetter && el.style.transform !== 'scale(0)'
+                            );
+                            if(remainingTargets.length === 0) { 
+                                triggerConfetti(); 
+                                scheduleNext(() => initEnglishPop(), 1600); 
+                            }
+                        }, 250);
+                    } else if (b.innerText !== targetLetter) {
+                        playSound('fail');
+                        b.style.animation = 'none';
+                        b.offsetHeight;
+                        b.style.animation = 'bubbleFloat 4s linear infinite alternate';
+                    }
+                };
+                chamber.appendChild(b);
+            }
+        }
+
+        // --- EXTRA COLOR GAMES ---
+        function initColorsSay() {
+            const c = COLORS[Math.floor(Math.random() * COLORS.length)];
+            speak(`This color is ${c.name}`);
+            const opts = document.getElementById('options-colors-say');
+            if (!opts) return;
+            opts.innerHTML = '';
+            const blob = document.createElement('div');
+            blob.className = 'color-blob';
+            blob.style.backgroundColor = c.hex;
+            blob.style.width = '160px'; blob.style.height = '160px';
+            blob.onclick = () => { speak(`Yes, ${c.name}`); playSound('success'); scheduleNext(() => initColorsSay(), 1500); };
+            opts.appendChild(blob);
+            const label = document.createElement('div');
+            label.style.fontSize = '1.8rem'; label.style.fontWeight = 'bold'; label.style.marginTop = '16px';
+            label.innerText = `${c.emoji} ${c.name}`;
+            opts.appendChild(label);
+        }
+        function initColorsMatch() {
+            speak("Find two colors that are the same");
+            const opts = document.getElementById('options-colors-match');
+            if (!opts) return;
+            opts.innerHTML = '';
+            const base = [...COLORS].sort(() => Math.random()-0.5).slice(0,3);
+            const matchColor = base[0];
+            const pool = [matchColor, matchColor, base[1], base[2]].sort(() => Math.random()-0.5);
+            let selected = null;
+            pool.forEach((c) => {
+                const b = document.createElement('div');
+                b.className = 'color-blob';
+                b.style.backgroundColor = c.hex;
+                b.dataset.name = c.name;
+                b.onclick = () => {
+                    if (!selected) {
+                        selected = b;
+                        b.style.outline = '6px solid gold';
+                        speak(c.name);
+                    } else if (selected === b) {
+                        selected.style.outline = 'none';
+                        selected = null;
+                    } else if (selected.dataset.name === c.name) {
+                        playSound('success'); praise();
+                        triggerConfetti(); scheduleNext(() => initColorsMatch(), 1600);
+                    } else {
+                        playSound('fail'); speak('Try again');
+                        selected.style.outline = 'none';
+                        selected = null;
+                    }
+                };
+                opts.appendChild(b);
+            });
+        }
+
+        // --- EXTRA SHAPE GAMES ---
+        function initShapesFind() {
+            const shapes = ['circle', 'square', 'triangle', 'star'];
+            const target = pickDifferent(shapes, lastShapeTarget);
+            lastShapeTarget = target;
+            speak(`Find the ${target}`);
+            const prompt = document.getElementById('prompt-shapes-find');
+            if (prompt) prompt.innerText = `Find the ${target}!`;
+            const options = document.getElementById('options-shapes-find');
+            if (!options) return;
+            options.innerHTML = '';
+            shapes.sort(() => Math.random() - 0.5).forEach(s => {
+                const g = GEOMETRIES.find(x => x.id === s);
+                const box = document.createElement('div');
+                box.style.width = '110px'; box.style.height = '110px';
+                box.style.cursor = 'pointer';
+                box.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${g.svg.replace('COLOR', g.color)}</svg>`;
+                box.onclick = () => {
+                    if (s === target) {
+                        lightUp(box);
+                        playSound('success'); praise();
+                        triggerConfetti(); scheduleNext(() => initShapesFind(), 1600);
+                    } else {
+                        playSound('fail'); speak('Try again');
+                    }
+                };
+                options.appendChild(box);
+            });
+        }
+        function initShapesPop() {
+            const shapes = ['circle', 'square', 'triangle', 'star'];
+            const target = pickDifferent(shapes, lastShapeTarget);
+            lastShapeTarget = target;
+            speak(`Pop the ${target}`);
+            const options = document.getElementById('options-shapes-pop');
+            if (!options) return;
+            options.innerHTML = '';
+            // Show several shapes, some are the target
+            const pool = [];
+            for (let i = 0; i < 6; i++) {
+                pool.push(i < 2 ? target : shapes[Math.floor(Math.random()*shapes.length)]);
+            }
+            pool.sort(() => Math.random()-0.5);
+            let remaining = pool.filter(s => s === target).length;
+            pool.forEach(s => {
+                const g = GEOMETRIES.find(x => x.id === s);
+                const box = document.createElement('div');
+                box.style.width = '90px'; box.style.height = '90px';
+                box.style.cursor = 'pointer';
+                box.style.margin = '6px';
+                box.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${g.svg.replace('COLOR', g.color)}</svg>`;
+                box.onclick = () => {
+                    if (box.style.opacity === '0') return;
+                    if (s === target) {
+                        playSound('success');
+                        box.style.opacity = '0';
+                        box.style.transform = 'scale(0)';
+                        remaining--;
+                        if (remaining <= 0) {
+                            speak(`You popped all the ${target}s!`);
+                            triggerConfetti();
+                            scheduleNext(() => initShapesPop(), 1600);
+                        } else {
+                            praise();
+                        }
+                    } else {
+                        playSound('fail'); speak(`Find the ${target}`);
+                    }
+                };
+                options.appendChild(box);
+            });
+        }
+
+        // --- EXTRA MATH GAMES ---
+        function initMathTouch() {
+            let n;
+            do { n = Math.floor(Math.random() * 10) + 1; } while (n === lastNumberTarget);
+            lastNumberTarget = n;
+            speak(`Tap the number ${n}`);
+            const prompt = document.getElementById('prompt-math-touch');
+            if (prompt) prompt.innerText = `Tap the number ${n}`;
+            const answers = document.getElementById('answers-math-touch');
+            if (!answers) return;
+            answers.innerHTML = '';
+            const choices = new Set([n]);
+            while (choices.size < 4) choices.add(Math.floor(Math.random()*10)+1);
+            Array.from(choices).sort((a,b)=>a-b).forEach(num => {
+                const b = document.createElement('button');
+                b.className = 'num-btn';
+                b.innerText = num;
+                b.onclick = () => {
+                    if (num === n) {
+                        lightUp(b);
+                        playSound('success'); praise();
+                        triggerConfetti(); scheduleNext(() => initMathTouch(), 1600);
+                    } else {
+                        playSound('fail'); speak('Try again');
+                    }
+                };
+                answers.appendChild(b);
+            });
+        }
+        function initMathCountWith() {
+            speak("Let's count the stars together");
+            const count = Math.floor(Math.random() * 5) + 1;
+            const display = document.getElementById('display-math-countwith');
+            const answers = document.getElementById('answers-math-countwith');
+            if (!display || !answers) return;
+            display.innerHTML = '';
+            answers.innerHTML = '';
+            const starColors = ['#E63946','#F77F00','#FCBF49','#2A9D8F','#457B9D'];
+            for (let i = 0; i < count; i++) {
+                const col = starColors[i % starColors.length];
+                display.innerHTML += `<svg class="count-item" viewBox="0 0 100 100"><polygon points="50,5 64,36 98,36 70,57 81,91 50,70 19,91 30,57 2,36 36,36" fill="${col}" stroke="#fff" stroke-width="3"/></svg>`;
+            }
+            let i = 1;
+            const countInterval = setInterval(() => {
+                if (gameSession === window._countSession && i <= count) { speak(String(i)); i++; }
+                else clearInterval(countInterval);
+            }, 700);
+            window._countSession = gameSession;
+            trackTimeout(countInterval);
+            const choices = new Set([count]);
+            while (choices.size < 3) choices.add(Math.floor(Math.random()*5)+1);
+            Array.from(choices).sort((a,b)=>a-b).forEach(num => {
+                const b = document.createElement('button');
+                b.className = 'num-btn';
+                b.innerText = num;
+                b.onclick = () => {
+                    if (num === count) {
+                        playSound('success'); praise();
+                        triggerConfetti(); scheduleNext(() => initMathCountWith(), 1800);
+                    } else {
+                        playSound('fail'); speak('Try again');
+                    }
+                };
+                answers.appendChild(b);
+            });
+        }
+
+        // --- EXTRA ENGLISH GAMES ---
+        function initEnglishSounds() {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            let L;
+            do { L = letters[Math.floor(Math.random() * 26)]; } while (L === lastLetterTarget);
+            lastLetterTarget = L;
+            const display = document.getElementById('display-english-sounds');
+            const prompt = document.getElementById('prompt-english-sounds');
+            const opts = document.getElementById('options-english-sounds');
+            if (display) display.innerText = L;
+            if (prompt) prompt.innerText = `Letter ${L}`;
+            if (opts) {
+                opts.innerHTML = `<p style="font-size:1.4rem; margin-top:16px;">${L} says "${L.toLowerCase()}"</p>
+                    <button class="play-btn" style="margin-top:20px;" onclick="speakLetterSound('${L}')">Hear it again</button>
+                    <button class="play-btn" style="margin-top:12px;" onclick="initEnglishSounds()">Next letter</button>`;
+            }
+            speakLetterSound(L);
+        }
+        function speakLetterSound(L) {
+            // Clear paced teaching: pause between phrases so it does not rush
+            speak('This is the letter ' + L);
+            scheduleNext(() => speak(L + ' says ' + L.toLowerCase()), 1400);
+        }
+        function initEnglishWords() {
+            const item = DICTIONARY[Math.floor(Math.random() * DICTIONARY.length)];
+            const opts = document.getElementById('options-english-words');
+            const prompt = document.getElementById('prompt-english-words');
+            if (prompt) prompt.innerText = item.name;
+            if (opts) {
+                // One clear picture only (SVG) — no double emoji
+                opts.innerHTML = `<svg viewBox="0 0 100 100" width="140" height="140" style="display:block;margin:0 auto;">${item.svg}</svg>
+                    <p style="font-size:1.6rem; font-weight:bold; margin-top:12px;">${item.emoji || ''} ${item.name}</p>
+                    <p style="font-size:1.2rem;">Starts with ${item.L}</p>
+                    <button class="play-btn" style="margin-top:16px;" onclick="speakWordCard('${item.name}','${item.L}')">Hear it again</button>
+                    <button class="play-btn" style="margin-top:10px;" onclick="initEnglishWords()">Next word</button>`;
+            }
+            speakWordCard(item.name, item.L);
+        }
+        function speakWordCard(name, L) {
+            speak(name);
+            scheduleNext(() => speak(name + ' starts with the letter ' + L), 1100);
+        }
+
+        
+        // --- CAMERA MOMENT ---
+        function handleMomentCapture(input) {
+            const status = document.getElementById('moment-status');
+            if (!input.files || !input.files[0]) {
+                if (status) status.textContent = '';
+                return;
+            }
+            if (status) status.textContent = 'Photo saved on your phone 📷';
+            speak('Nice photo!');
+            input.value = '';
+        }
+
+        // --- CREATE STUDIO (Finger / Letter / Number / Shape Paint) ---
+        let paintMode = 'paint';
+        let paintColor = '#E63946';
+        let paintBrush = 'normal';
+        let paintDrawing = false;
+        let paintGuideIndex = 0;
+        let paintStrokePixels = 0;
+        let paintIdleTimer = null;
+        let paintCompleting = false;
+        const PAINT_COLORS = ['#E63946','#F77F00','#FCBF49','#2A9D8F','#457B9D','#9B5DE5','#FF6B9D','#2B2D42','#FFFFFF'];
+        const PAINT_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        const PAINT_NUMBERS = '0123456789'.split('');
+        const PAINT_SHAPES = ['circle', 'square', 'triangle', 'star'];
+        const BRUSH_SIZES = { thin: 6, normal: 14, thick: 26, eraser: 28 };
+
+        function initCreateStudio(mode) {
+            paintMode = mode || 'paint';
+            paintBrush = 'normal';
+            paintGuideIndex = 0;
+            paintStrokePixels = 0;
+            paintCompleting = false;
+            paintColor = '#E63946';
+
+            document.querySelectorAll('.brush-btn').forEach(b => {
+                b.classList.toggle('active', b.getAttribute('data-brush') === 'normal');
+            });
+
+            const eraserBtn = document.getElementById('paint-eraser-btn');
+            const doneBtn = document.getElementById('paint-done-btn');
+            const nextBtn = document.getElementById('paint-next-btn');
+            const prompt = document.getElementById('prompt-paint');
+            const hint = document.getElementById('paint-hint');
+
+            const colors = document.getElementById('paint-colors');
+            if (colors) {
+                colors.innerHTML = '';
+                PAINT_COLORS.forEach((col, i) => {
+                    const s = document.createElement('div');
+                    s.className = 'paint-swatch' + (i === 0 ? ' active' : '');
+                    s.style.background = col;
+                    if (col === '#FFFFFF') s.style.border = '3px solid #ccc';
+                    s.onclick = () => {
+                        paintColor = col;
+                        if (paintBrush === 'eraser') setPaintBrush('normal');
+                        colors.querySelectorAll('.paint-swatch').forEach(x => x.classList.remove('active'));
+                        s.classList.add('active');
+                    };
+                    colors.appendChild(s);
+                });
+            }
+
+            setupPaintCanvas();
+            sizePaintCanvas();
+
+            if (paintMode === 'paint') {
+                if (prompt) prompt.innerText = 'Finger Paint';
+                if (hint) hint.innerText = 'Pick a color and brush, then draw anything!';
+                if (eraserBtn) eraserBtn.style.display = '';
+                if (doneBtn) doneBtn.style.display = 'none';
+                if (nextBtn) nextBtn.style.display = 'none';
+                wipePaintCanvas();
+                speak('Finger paint. Draw anything you like!');
+            } else {
+                if (eraserBtn) eraserBtn.style.display = 'none';
+                if (doneBtn) doneBtn.style.display = 'inline-block';
+                if (nextBtn) nextBtn.style.display = 'inline-block';
+                if (hint) hint.innerText = 'Trace the guide, then tap Done — or keep drawing until it celebrates!';
+                // Show first guide + announce (queued speech)
+                showPaintGuide(true);
+            }
+        }
+
+        function sizePaintCanvas() {
+            const canvas = document.getElementById('paint-canvas');
+            if (!canvas) return;
+            // High-res canvas matching display box
+            const maxW = Math.min(860, (window.innerWidth || 800) - 48);
+            const maxH = Math.min(520, Math.floor((window.innerHeight || 700) * 0.55));
+            canvas.width = Math.max(480, maxW);
+            canvas.height = Math.max(300, maxH);
+        }
+
+        function setPaintBrush(brush) {
+            paintBrush = brush;
+            document.querySelectorAll('.brush-btn').forEach(b => {
+                b.classList.toggle('active', b.getAttribute('data-brush') === brush);
+            });
+        }
+
+        function wipePaintCanvas() {
+            const canvas = document.getElementById('paint-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            paintStrokePixels = 0;
+        }
+
+        function drawPaintGuide() {
+            const canvas = document.getElementById('paint-canvas');
+            if (!canvas) return '';
+            const ctx = canvas.getContext('2d');
+            const cx = canvas.width / 2, cy = canvas.height / 2;
+            ctx.save();
+            ctx.strokeStyle = '#BDBDBD';
+            ctx.lineWidth = Math.max(8, Math.floor(canvas.width / 80));
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            let label = '';
+
+            if (paintMode === 'letters') {
+                const L = PAINT_LETTERS[paintGuideIndex % PAINT_LETTERS.length];
+                label = 'Trace the letter ' + L;
+                const fontSize = Math.floor(Math.min(canvas.height * 0.72, canvas.width * 0.55));
+                // Clear, rounded system font stack for easier tracing
+                ctx.font = '600 ' + fontSize + 'px "Segoe UI", "Arial Rounded MT Bold", Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.strokeText(L, cx, cy + fontSize * 0.05);
+            } else if (paintMode === 'numbers') {
+                const n = PAINT_NUMBERS[paintGuideIndex % PAINT_NUMBERS.length];
+                label = 'Trace the number ' + n;
+                const fontSize = Math.floor(Math.min(canvas.height * 0.72, canvas.width * 0.55));
+                ctx.font = '600 ' + fontSize + 'px "Segoe UI", "Arial Rounded MT Bold", Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.strokeText(n, cx, cy + fontSize * 0.05);
+            } else if (paintMode === 'shapes') {
+                const sh = PAINT_SHAPES[paintGuideIndex % PAINT_SHAPES.length];
+                label = 'Trace the ' + sh;
+                const r = Math.min(canvas.width, canvas.height) * 0.32;
+                ctx.beginPath();
+                if (sh === 'circle') {
+                    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                    ctx.stroke();
+                } else if (sh === 'square') {
+                    ctx.strokeRect(cx - r, cy - r, r * 2, r * 2);
+                } else if (sh === 'triangle') {
+                    ctx.moveTo(cx, cy - r);
+                    ctx.lineTo(cx + r * 1.15, cy + r * 0.95);
+                    ctx.lineTo(cx - r * 1.15, cy + r * 0.95);
+                    ctx.closePath();
+                    ctx.stroke();
+                } else if (sh === 'star') {
+                    for (let i = 0; i < 5; i++) {
+                        const a = -Math.PI / 2 + i * 2 * Math.PI / 5;
+                        const a2 = a + Math.PI / 5;
+                        const x1 = cx + Math.cos(a) * r, y1 = cy + Math.sin(a) * r;
+                        const x2 = cx + Math.cos(a2) * r * 0.42, y2 = cy + Math.sin(a2) * r * 0.42;
+                        if (i === 0) ctx.moveTo(x1, y1); else ctx.lineTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                    }
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+            }
+            ctx.restore();
+            return label;
+        }
+
+        function showPaintGuide(announce) {
+            wipePaintCanvas();
+            const label = drawPaintGuide();
+            const prompt = document.getElementById('prompt-paint');
+            if (prompt && label) prompt.innerText = label;
+            if (announce && label) speak(label);
+            paintStrokePixels = 0;
+        }
+
+        function skipPaintGuide() {
+            if (paintMode === 'paint' || paintCompleting) return;
+            paintGuideIndex++;
+            showPaintGuide(true);
+        }
+
+        function completePaintGuide() {
+            if (paintMode === 'paint' || paintCompleting) return;
+            paintCompleting = true;
+            playSound('success');
+            triggerConfetti();
+            const session = gameSession;
+            // Praise fully, then advance guide + announce (speech queue keeps order)
+            praise(() => {
+                if (session !== gameSession) { paintCompleting = false; return; }
+                scheduleNext(() => {
+                    if (session !== gameSession) { paintCompleting = false; return; }
+                    paintGuideIndex++;
+                    paintCompleting = false;
+                    showPaintGuide(true);
+                }, 400);
+            });
+        }
+
+        function clearPaint() {
+            if (paintMode === 'paint') {
+                wipePaintCanvas();
+            } else {
+                showPaintGuide(false);
+            }
+        }
+
+        function setupPaintCanvas() {
+            const canvas = document.getElementById('paint-canvas');
+            if (!canvas || canvas._paintReady) return;
+            canvas._paintReady = true;
+            const ctx = canvas.getContext('2d');
+            function pos(e) {
+                const r = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / r.width;
+                const scaleY = canvas.height / r.height;
+                const src = e.touches ? e.touches[0] : e;
+                return { x: (src.clientX - r.left) * scaleX, y: (src.clientY - r.top) * scaleY };
+            }
+            function start(e) {
+                e.preventDefault();
+                paintDrawing = true;
+                const p = pos(e);
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+            }
+            function move(e) {
+                if (!paintDrawing || paintCompleting) return;
+                e.preventDefault();
+                const p = pos(e);
+                const size = BRUSH_SIZES[paintBrush] || 14;
+                if (paintBrush === 'eraser') {
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = size;
+                } else {
+                    ctx.strokeStyle = paintColor;
+                    ctx.lineWidth = size;
+                }
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.lineTo(p.x, p.y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                paintStrokePixels += size;
+                // Easier completion threshold for big guides
+                const need = paintMode === 'shapes' ? 1800 : 1400;
+                if (paintMode !== 'paint' && paintStrokePixels > need) {
+                    if (paintIdleTimer) clearTimeout(paintIdleTimer);
+                    paintIdleTimer = trackTimeout(setTimeout(() => {
+                        if (paintMode !== 'paint' && !paintCompleting && paintStrokePixels > need) {
+                            paintStrokePixels = 0;
+                            completePaintGuide();
+                        }
+                    }, 800));
+                }
+            }
+            function end() { paintDrawing = false; }
+            canvas.addEventListener('mousedown', start);
+            canvas.addEventListener('mousemove', move);
+            canvas.addEventListener('mouseup', end);
+            canvas.addEventListener('mouseleave', end);
+            canvas.addEventListener('touchstart', start, { passive: false });
+            canvas.addEventListener('touchmove', move, { passive: false });
+            canvas.addEventListener('touchend', end);
+            window.addEventListener('resize', () => {
+                if (document.getElementById('game-create-studio')?.classList.contains('active')) {
+                    const mode = paintMode;
+                    const idx = paintGuideIndex;
+                    sizePaintCanvas();
+                    paintGuideIndex = idx;
+                    if (mode === 'paint') wipePaintCanvas();
+                    else showPaintGuide(false);
+                }
+            });
+        }
+
+        // --- PWA INSTALL PROMPT ---
+        let deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const banner = document.getElementById('install-banner');
+            if (banner && !localStorage.getItem('stella-install-dismissed')) {
+                banner.style.display = 'block';
+            }
+        });
+        const installBtn = document.getElementById('install-btn');
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                document.getElementById('install-banner').style.display = 'none';
+            });
+        }
+        const dismissBtn = document.getElementById('install-dismiss');
+        if (dismissBtn) {
+            dismissBtn.addEventListener('click', () => {
+                document.getElementById('install-banner').style.display = 'none';
+                localStorage.setItem('stella-install-dismissed', '1');
+            });
+        }
+
+    </script>
+</body>
+</html>
