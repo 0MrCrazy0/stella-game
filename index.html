@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="referrer" content="strict-origin-when-cross-origin">
-    <title>Stella's Game - Magical Early Learning</title>
+    <title>Stella's Game — Early Learning for Little Ones</title>
+    <meta name="description" content="A warm, voice-first early learning game: colors, shapes, numbers, letters, farm animals and finger paint. Made for ages 0 to 5.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Stella's Game">
+    <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#FF8FAB">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -324,11 +329,17 @@
 
         /* Correct answer highlight */
         .lit-up {
-            outline: 5px solid #FFD166 !important;
-            box-shadow: 0 0 0 6px rgba(255, 209, 102, 0.5), 0 0 28px rgba(255, 209, 102, 0.75) !important;
-            transform: scale(1.07) !important;
+            outline: 6px solid #FFE600 !important;
+            box-shadow: 0 0 0 8px rgba(255, 230, 0, 0.45), 0 0 36px rgba(255, 195, 0, 0.95) !important;
+            transform: scale(1.1) !important;
             transition: transform 0.15s ease, box-shadow 0.15s ease !important;
             z-index: 5;
+            animation: blingPulse 0.45s ease-out;
+        }
+        @keyframes blingPulse {
+            0% { filter: brightness(1); }
+            40% { filter: brightness(1.35); }
+            100% { filter: brightness(1); }
         }
         .farm-animal .emoji { font-size: 2.8rem; line-height: 1; }
         .farm-animal .label { font-size: 1rem; font-weight: bold; color: var(--text-dark); }
@@ -664,11 +675,22 @@
             cursor: pointer;
         }
         .paint-swatch.active { outline: 3px solid var(--text-dark); }
+        .paint-always-nav {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            z-index: 25;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            pointer-events: auto;
+        }
+        .paint-always-nav .back-btn { margin: 0; }
         .paint-trace-hud {
             position: absolute;
             left: 10px;
             right: 10px;
-            top: 10px;
+            top: 64px;
             z-index: 15;
             display: none;
             flex-wrap: wrap;
@@ -727,6 +749,38 @@
             box-shadow: 0 4px 0 var(--stella-pink);
         }
         .camera-btn-main:active { transform: translateY(3px); box-shadow: none; }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px 14px;
+            flex-wrap: wrap;
+        }
+        .voice-mute-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: #fff;
+            border: 3px solid var(--text-dark);
+            color: var(--text-dark);
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-family: var(--font-main);
+            font-weight: 800;
+            font-size: 0.95rem;
+            cursor: pointer;
+            min-height: 44px;
+            box-shadow: 0 3px 0 var(--text-dark);
+        }
+        .voice-mute-btn.is-muted {
+            background: var(--text-dark);
+            color: #fff;
+            border-color: var(--text-dark);
+            box-shadow: 0 3px 0 #111;
+        }
+        .voice-mute-btn:active { transform: translateY(2px); box-shadow: none; }
 
         /* --- REWARD CANVAS OVERLAY --- */
         #confetti-canvas {
@@ -797,7 +851,10 @@
 <body>
 
     <header>
-        <h1>🌸 Stella's Game 🌟</h1>
+        <div class="header-row">
+            <h1>🌸 Stella's Game 🌟</h1>
+            <button type="button" id="voice-mute-btn" class="voice-mute-btn" onclick="toggleVoiceMute()" aria-pressed="false" title="Turn the talking voice off. Farm sounds and music still play.">🔊 Voice on</button>
+        </div>
         <div class="subtitle">A gentle learning game for little ones</div>
     </header>
 
@@ -951,7 +1008,11 @@
                 <div class="game-prompt">Tap the card to see a new color 🎨</div>
                 <div class="flashcard" id="card-display" onclick="nextFlashcard()">
                     <div class="flashcard-inner" id="card-color-inner"></div>
-                    <div class="flashcard-text" id="card-color-text">Pink</div>
+                    <div class="flashcard-text" id="card-color-text">Red</div>
+                </div>
+                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                    <button type="button" class="play-btn" onclick="stepFlashcard(-1)">◀ Prev</button>
+                    <button type="button" class="play-btn" onclick="stepFlashcard(1)">Next ▶</button>
                 </div>
             </div>
         </div>
@@ -1081,15 +1142,21 @@
         <div id="game-create-studio" class="screen paint-screen">
             <canvas id="paint-canvas" width="860" height="520"></canvas>
 
+            <!-- Always visible leave buttons (Finger Paint + tracing) -->
+            <div class="paint-always-nav" id="paint-always-nav">
+                <button type="button" class="back-btn" onclick="goBackToSubmenu('create')">← Back</button>
+                <button type="button" class="back-btn" onclick="showMenu()">Home</button>
+            </div>
+
             <!-- Trace HUD (letters / numbers / shapes) -->
             <div class="paint-trace-hud" id="paint-trace-hud">
                 <div class="hud-left">
-                    <button type="button" class="back-btn" style="margin:0;" onclick="goBackToSubmenu('create')">← Back</button>
                     <div class="game-prompt" id="prompt-paint">Trace</div>
                     <div class="paint-progress" title="Trace progress"><i id="paint-progress-bar"></i></div>
                 </div>
                 <div class="hud-right">
-                    <button type="button" class="paint-mode-btn" onclick="skipPaintGuide()">Next</button>
+                    <button type="button" class="paint-mode-btn" onclick="prevPaintGuide()">◀ Prev</button>
+                    <button type="button" class="paint-mode-btn" onclick="skipPaintGuide()">Next ▶</button>
                     <button type="button" class="play-btn" style="padding:10px 18px;font-size:1rem;" onclick="completePaintGuide()">Done ✓</button>
                 </div>
             </div>
@@ -1098,8 +1165,7 @@
             <button type="button" class="paint-fab" id="paint-fab" onclick="togglePaintTools()" title="Tools">🛠️</button>
             <div class="paint-float" id="paint-float">
                 <div class="paint-toolbar">
-                    <button type="button" class="back-btn" style="margin:0;" onclick="goBackToSubmenu('create')">← Back</button>
-                    <button type="button" onclick="togglePaintTools()">Close</button>
+                    <button type="button" onclick="togglePaintTools()">Close tools</button>
                 </div>
                 <div class="paint-toolbar" id="paint-brushes">
                     <button type="button" class="paint-mode-btn brush-btn active" data-brush="thin" onclick="setPaintBrush('thin')">Thin</button>
@@ -1137,6 +1203,10 @@
 
         // --- POLYPHONIC AUDIO ENGINE + VOICE (Web Speech API) ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        let letterSoundIdx = 0;
+        let pictureWordIdx = 0;
+        let mathTouchIdx = 1;
 
         // Remember last targets so rounds feel varied
         let lastShapeTarget = null;
@@ -1203,6 +1273,30 @@
         // Speech queue — never cuts off the previous line mid-sentence
         let _speakQueue = [];
         let _speakBusy = false;
+        let voiceMuted = false;
+        try { voiceMuted = localStorage.getItem('stella-voice-mute') === '1'; } catch (e) {}
+
+        function updateVoiceMuteBtn() {
+            const btn = document.getElementById('voice-mute-btn');
+            if (!btn) return;
+            btn.classList.toggle('is-muted', voiceMuted);
+            btn.setAttribute('aria-pressed', voiceMuted ? 'true' : 'false');
+            btn.textContent = voiceMuted ? '🔇 Voice off' : '🔊 Voice on';
+            btn.title = voiceMuted
+                ? 'Voice is off. Tap to hear the teacher again. Farm sounds still play.'
+                : 'Turn the talking voice off. Farm sounds and music still play.';
+        }
+
+        function toggleVoiceMute() {
+            voiceMuted = !voiceMuted;
+            try { localStorage.setItem('stella-voice-mute', voiceMuted ? '1' : '0'); } catch (e) {}
+            if (voiceMuted) {
+                try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
+                _speakBusy = false;
+            }
+            updateVoiceMuteBtn();
+            _processSpeakQueue();
+        }
 
         function speak(text, opts = {}) {
             _speakQueue.push({ text: String(text), opts: opts || {} });
@@ -1213,9 +1307,13 @@
             if (_speakBusy) return;
             const job = _speakQueue.shift();
             if (!job) return;
-            if (!window.speechSynthesis) {
-                if (job.opts.onEnd) job.opts.onEnd();
+            const finish = () => {
+                _speakBusy = false;
+                try { if (job.opts.onEnd) job.opts.onEnd(); } catch (e) {}
                 _processSpeakQueue();
+            };
+            if (voiceMuted || !window.speechSynthesis) {
+                finish();
                 return;
             }
             _speakBusy = true;
@@ -1233,18 +1331,11 @@
                 } else {
                     u.pitch = job.opts.pitch != null ? job.opts.pitch : 0.65;
                 }
-                const finish = () => {
-                    _speakBusy = false;
-                    try { if (job.opts.onEnd) job.opts.onEnd(); } catch(e) {}
-                    _processSpeakQueue();
-                };
                 u.onend = finish;
                 u.onerror = finish;
                 speechSynthesis.speak(u);
             } catch (e) {
-                _speakBusy = false;
-                if (job.opts.onEnd) job.opts.onEnd();
-                _processSpeakQueue();
+                finish();
             }
         }
 
@@ -1253,6 +1344,8 @@
             _speakBusy = false;
             try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch(e) {}
         }
+
+        updateVoiceMuteBtn();
 
         // Warm up + refresh when browser loads voice list
         if (window.speechSynthesis) {
@@ -1506,8 +1599,8 @@
             ],
             create: [
                 { name: "🎨 Finger Paint", desc: "Free draw like a simple paint app", run: "create-free" },
-                { name: "🔤 Letter Paint", desc: "Trace big letters A to Z", run: "create-letters" },
-                { name: "🔢 Number Paint", desc: "Trace numbers 0 to 9", run: "create-numbers" },
+                { name: "🔤 Letter Paint", desc: "Trace big and little letters A to Z", run: "create-letters" },
+                { name: "🔢 Number Paint", desc: "Trace numbers 0 to 10", run: "create-numbers" },
                 { name: "🔷 Shape Paint", desc: "Trace circles, squares, stars and more", run: "create-shapes" }
             ]
         };
@@ -1589,12 +1682,23 @@
             speak("Look at the pretty shapes!");
             const container = document.getElementById('canvas-sensory'); 
             container.innerHTML = '';
-            const svgs = [
-                `<svg class="mobile-element" viewBox="0 0 100 100" onclick="playSound(1)"><circle cx="50" cy="50" r="40" fill="#000" stroke="#FFF" stroke-width="6"/></svg>`,
-                `<svg class="mobile-element" viewBox="0 0 100 100" onclick="playSound(3)"><rect x="15" y="15" width="70" height="70" fill="none" stroke="#000" stroke-width="10"/></svg>`,
-                `<svg class="mobile-element" viewBox="0 0 100 100" onclick="playSound(5)"><polygon points="50,10 90,85 10,85" fill="var(--stella-dark-pink)"/></svg>`
+            const items = [
+                { name: 'circle', svg: `<circle cx="50" cy="50" r="40" fill="#000" stroke="#FFF" stroke-width="6"/>`, tone: 1 },
+                { name: 'square', svg: `<rect x="15" y="15" width="70" height="70" fill="none" stroke="#000" stroke-width="10"/>`, tone: 3 },
+                { name: 'triangle', svg: `<polygon points="50,10 90,85 10,85" fill="#E63980"/>`, tone: 5 }
             ];
-            svgs.forEach(s => container.innerHTML += s);
+            items.forEach(it => {
+                const wrap = document.createElement('div');
+                wrap.innerHTML = `<svg class="mobile-element" viewBox="0 0 100 100">${it.svg}</svg>`;
+                const el = wrap.firstElementChild;
+                el.setAttribute('role', 'button');
+                el.setAttribute('aria-label', it.name);
+                el.addEventListener('click', () => {
+                    playSound(it.tone);
+                    speak(it.name);
+                });
+                container.appendChild(el);
+            });
         }
 
         // --- STAGE 0-1 GAME B: AUDIO SOUNDBOARD ---
@@ -1659,6 +1763,7 @@
                     door.classList.add('open');
                     if (i === winner) {
                         door.innerHTML = faces[Math.floor(Math.random() * faces.length)];
+                        lightUp(door);
                         playSound('success');
                         speak("Peekaboo! I see you!");
                         scheduleNext(() => { triggerConfetti(); scheduleNext(() => initSensoryPeekaboo(), 2000); }, 800);
@@ -1750,16 +1855,24 @@
         // --- STAGE 1-2 GAME B: FLASHCARDS ---
         let currentFlashIdx = 0;
         function initColorsFlashcards() {
-            speak("Tap the card to see a new color");
-            nextFlashcard();
+            currentFlashIdx = 0;
+            speak("These are the colors");
+            showFlashcard(false);
         }
-        function nextFlashcard() {
-            currentFlashIdx = (currentFlashIdx + 1) % COLORS.length;
+        function stepFlashcard(dir) {
+            currentFlashIdx = (currentFlashIdx + dir + COLORS.length) % COLORS.length;
+            showFlashcard(true);
+        }
+        function nextFlashcard() { stepFlashcard(1); }
+        function showFlashcard(announce) {
             const c = COLORS[currentFlashIdx];
+            const card = document.getElementById('card-display');
             document.getElementById('card-color-inner').style.backgroundColor = c.hex;
             document.getElementById('card-color-text').innerText = `${c.emoji} ${c.name}`;
             playSound(currentFlashIdx);
-            speak(c.name);
+            if (card) lightUp(card);
+            if (announce !== false) speak(c.name);
+            else speak(c.name);
         }
 
         // --- STAGE 2-3 GAME A: PUZZLE MATCHING ---
@@ -2005,6 +2118,8 @@
         }
         function checkComparison(side) {
             if(side === correctCompSide) {
+                const box = document.getElementById(side === 'left' ? 'comp-left' : 'comp-right');
+                lightUp(box);
                 playSound('success');
                 praise();
                 triggerConfetti(); scheduleNext(() => initMathComparison(), 1800);
@@ -2053,7 +2168,7 @@
                 if (others.length) target = others[Math.floor(Math.random() * others.length)];
             }
             lastLetterTarget = target.L;
-            document.getElementById('display-english').innerText = target.L;
+            document.getElementById('display-english').innerText = target.L + ' ' + target.L.toLowerCase();
             speak(`Find the picture for the letter ${target.L}`);
 
             const options = document.getElementById('options-english'); options.innerHTML = '';
@@ -2155,7 +2270,7 @@
             blob.className = 'color-blob';
             blob.style.backgroundColor = c.hex;
             blob.style.width = '160px'; blob.style.height = '160px';
-            blob.onclick = () => { speak(`Yes, ${c.name}`); playSound('success'); scheduleNext(() => initColorsSay(), 1500); };
+            blob.onclick = () => { lightUp(blob); speak(`Yes, ${c.name}`); playSound('success'); scheduleNext(() => initColorsSay(), 1500); };
             opts.appendChild(blob);
             const label = document.createElement('div');
             label.style.fontSize = '1.8rem'; label.style.fontWeight = 'bold'; label.style.marginTop = '16px';
@@ -2272,8 +2387,8 @@
 
         // --- EXTRA MATH GAMES ---
         function initMathTouch() {
-            let n;
-            do { n = Math.floor(Math.random() * 10) + 1; } while (n === lastNumberTarget);
+            if (typeof mathTouchIdx !== 'number' || mathTouchIdx < 1 || mathTouchIdx > 10) mathTouchIdx = 1;
+            const n = mathTouchIdx;
             lastNumberTarget = n;
             speak(`Tap the number ${n}`);
             const prompt = document.getElementById('prompt-math-touch');
@@ -2291,6 +2406,7 @@
                     if (num === n) {
                         lightUp(b);
                         playSound('success'); praise();
+                        mathTouchIdx = mathTouchIdx >= 10 ? 1 : mathTouchIdx + 1;
                         triggerConfetti(); scheduleNext(() => initMathTouch(), 1600);
                     } else {
                         playSound('fail'); speak('Try again');
@@ -2313,11 +2429,11 @@
                 display.innerHTML += `<svg class="count-item" viewBox="0 0 100 100"><polygon points="50,5 64,36 98,36 70,57 81,91 50,70 19,91 30,57 2,36 36,36" fill="${col}" stroke="#fff" stroke-width="3"/></svg>`;
             }
             let i = 1;
+            window._countSession = gameSession;
             const countInterval = setInterval(() => {
                 if (gameSession === window._countSession && i <= count) { speak(String(i)); i++; }
                 else clearInterval(countInterval);
             }, 700);
-            window._countSession = gameSession;
             trackTimeout(countInterval);
             const choices = new Set([count]);
             while (choices.size < 3) choices.add(Math.floor(Math.random()*5)+1);
@@ -2327,6 +2443,7 @@
                 b.innerText = num;
                 b.onclick = () => {
                     if (num === count) {
+                        lightUp(b);
                         playSound('success'); praise();
                         triggerConfetti(); scheduleNext(() => initMathCountWith(), 1800);
                     } else {
@@ -2339,41 +2456,63 @@
 
         // --- EXTRA ENGLISH GAMES ---
         function initEnglishSounds() {
-            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-            let L;
-            do { L = letters[Math.floor(Math.random() * 26)]; } while (L === lastLetterTarget);
+            letterSoundIdx = 0;
+            showLetterSound(0, true);
+        }
+        function stepLetterSound(dir) {
+            letterSoundIdx = (letterSoundIdx + dir + 26) % 26;
+            showLetterSound(letterSoundIdx, true);
+        }
+        function showLetterSound(idx, talk) {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const L = letters[idx];
+            const little = L.toLowerCase();
             lastLetterTarget = L;
             const display = document.getElementById('display-english-sounds');
             const prompt = document.getElementById('prompt-english-sounds');
             const opts = document.getElementById('options-english-sounds');
-            if (display) display.innerText = L;
-            if (prompt) prompt.innerText = `Letter ${L}`;
+            if (display) display.innerHTML = `<span>${L}</span><span style="margin-left:0.25em;opacity:0.9;">${little}</span>`;
+            if (prompt) prompt.innerText = `Big ${L}  ·  little ${little}`;
             if (opts) {
-                opts.innerHTML = `<p style="font-size:1.4rem; margin-top:16px;">${L} says "${L.toLowerCase()}"</p>
-                    <button class="play-btn" style="margin-top:20px;" onclick="speakLetterSound('${L}')">Hear it again</button>
-                    <button class="play-btn" style="margin-top:12px;" onclick="initEnglishSounds()">Next letter</button>`;
+                opts.innerHTML = `<p style="font-size:1.35rem; margin-top:16px;">${L} and ${little} say "${little}"</p>
+                    <button class="play-btn" style="margin-top:16px;" onclick="speakLetterSound('${L}')">Hear it again</button>
+                    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px;">
+                        <button class="play-btn" onclick="stepLetterSound(-1)">◀ Prev</button>
+                        <button class="play-btn" onclick="stepLetterSound(1)">Next ▶</button>
+                    </div>`;
             }
-            speakLetterSound(L);
+            if (talk) speakLetterSound(L);
         }
         function speakLetterSound(L) {
-            // Clear paced teaching: pause between phrases so it does not rush
-            speak('This is the letter ' + L);
-            scheduleNext(() => speak(L + ' says ' + L.toLowerCase()), 1400);
+            const little = String(L).toLowerCase();
+            speak('This is the big letter ' + L);
+            scheduleNext(() => speak('This is the little letter ' + little), 1200);
+            scheduleNext(() => speak(L + ' says ' + little), 2600);
         }
         function initEnglishWords() {
-            const item = DICTIONARY[Math.floor(Math.random() * DICTIONARY.length)];
+            pictureWordIdx = 0;
+            showPictureWord(0, true);
+        }
+        function stepPictureWord(dir) {
+            pictureWordIdx = (pictureWordIdx + dir + DICTIONARY.length) % DICTIONARY.length;
+            showPictureWord(pictureWordIdx, true);
+        }
+        function showPictureWord(idx, talk) {
+            const item = DICTIONARY[idx];
             const opts = document.getElementById('options-english-words');
             const prompt = document.getElementById('prompt-english-words');
             if (prompt) prompt.innerText = item.name;
             if (opts) {
-                // One clear picture only (SVG) — no double emoji
                 opts.innerHTML = `<svg viewBox="0 0 100 100" width="140" height="140" style="display:block;margin:0 auto;">${item.svg}</svg>
-                    <p style="font-size:1.6rem; font-weight:bold; margin-top:12px;">${item.emoji || ''} ${item.name}</p>
+                    <p style="font-size:1.6rem; font-weight:bold; margin-top:12px;">${item.name}</p>
                     <p style="font-size:1.2rem;">Starts with ${item.L}</p>
                     <button class="play-btn" style="margin-top:16px;" onclick="speakWordCard('${item.name}','${item.L}')">Hear it again</button>
-                    <button class="play-btn" style="margin-top:10px;" onclick="initEnglishWords()">Next word</button>`;
+                    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px;">
+                        <button class="play-btn" onclick="stepPictureWord(-1)">◀ Prev</button>
+                        <button class="play-btn" onclick="stepPictureWord(1)">Next ▶</button>
+                    </div>`;
             }
-            speakWordCard(item.name, item.L);
+            if (talk) speakWordCard(item.name, item.L);
         }
         function speakWordCard(name, L) {
             speak(name);
@@ -2402,6 +2541,7 @@
         let paintCompleting = false;
         let paintLastX = 0, paintLastY = 0;
         let paintGuidePoints = [];
+        let paintStrokeRanges = []; // [{start,end}) per stroke
         let paintHitFlags = null; // Uint8Array parallel to guide points
         let paintHitCount = 0;
         let paintStrokeInk = 0;
@@ -2409,7 +2549,12 @@
         const PAINT_UNDO_MAX = 25;
         const PAINT_COLORS = ['#E63946','#F77F00','#FCBF49','#2A9D8F','#457B9D','#9B5DE5','#FF6B9D','#2B2D42','#111111','#FFFFFF'];
         const PAINT_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-        const PAINT_NUMBERS = '0123456789'.split('');
+        const PAINT_LETTER_GUIDES = [];
+        PAINT_LETTERS.forEach((U) => {
+            PAINT_LETTER_GUIDES.push({ ch: U, kind: 'upper' });
+            PAINT_LETTER_GUIDES.push({ ch: U.toLowerCase(), kind: 'lower' });
+        });
+        const PAINT_NUMBERS = ['0','1','2','3','4','5','6','7','8','9','10'];
         const PAINT_SHAPES = ['circle', 'square', 'triangle', 'star'];
         const BRUSH_SIZES = { thin: 6, normal: 14, thick: 28, eraser: 30 };
 
@@ -2432,6 +2577,7 @@
             paintStrokeInk = 0;
             paintUndoStack = [];
             paintGuidePoints = [];
+            paintStrokeRanges = [];
             paintHitFlags = null;
             paintHitCount = 0;
 
@@ -2603,82 +2749,244 @@
             updatePaintProgress();
         }
 
-        // Single-line stick paths (child tracing — follow the line, not color-in)
-        function stickLetterPaths(L, cx, cy, s) {
-            // s = scale (half-size roughly)
-            const p = (x, y) => [cx + x * s, cy + y * s];
-            const lines = {
-                A: [[p(0,-1), p(-0.75,1)], [p(0,-1), p(0.75,1)], [p(-0.4,0.25), p(0.4,0.25)]],
-                B: [[p(-0.6,-1), p(-0.6,1)], [p(-0.6,-1), p(0.35,-1), p(0.55,-0.75), p(0.55,-0.35), p(0.35,-0.1), p(-0.6,-0.1)],
-                    [p(-0.6,-0.1), p(0.4,-0.1), p(0.65,0.15), p(0.65,0.65), p(0.4,1), p(-0.6,1)]],
-                C: [[p(0.7,-0.7), p(0.2,-1), p(-0.5,-0.85), p(-0.75,0), p(-0.5,0.85), p(0.2,1), p(0.7,0.7)]],
-                D: [[p(-0.6,-1), p(-0.6,1)], [p(-0.6,-1), p(0.2,-1), p(0.7,-0.4), p(0.7,0.4), p(0.2,1), p(-0.6,1)]],
-                E: [[p(0.65,-1), p(-0.65,-1), p(-0.65,1), p(0.65,1)], [p(-0.65,0), p(0.4,0)]],
-                F: [[p(0.65,-1), p(-0.65,-1), p(-0.65,1)], [p(-0.65,0), p(0.35,0)]],
-                G: [[p(0.7,-0.65), p(0.2,-1), p(-0.5,-0.85), p(-0.75,0), p(-0.5,0.85), p(0.2,1), p(0.7,0.55), p(0.7,0.1), p(0.15,0.1)]],
-                H: [[p(-0.65,-1), p(-0.65,1)], [p(0.65,-1), p(0.65,1)], [p(-0.65,0), p(0.65,0)]],
-                I: [[p(-0.45,-1), p(0.45,-1)], [p(0,-1), p(0,1)], [p(-0.45,1), p(0.45,1)]],
-                J: [[p(0.55,-1), p(0.55,0.55), p(0.25,1), p(-0.35,1), p(-0.65,0.55)]],
-                K: [[p(-0.6,-1), p(-0.6,1)], [p(0.65,-1), p(-0.6,0.05)], [p(-0.15, -0.1), p(0.7,1)]],
-                L: [[p(-0.6,-1), p(-0.6,1), p(0.65,1)]],
-                M: [[p(-0.8,1), p(-0.8,-1), p(0,-0.1), p(0.8,-1), p(0.8,1)]],
-                N: [[p(-0.65,1), p(-0.65,-1), p(0.65,1), p(0.65,-1)]],
-                O: [[p(0,-1), p(-0.55,-0.75), p(-0.8,0), p(-0.55,0.75), p(0,1), p(0.55,0.75), p(0.8,0), p(0.55,-0.75), p(0,-1)]],
-                P: [[p(-0.6,1), p(-0.6,-1), p(0.35,-1), p(0.6,-0.7), p(0.6,-0.25), p(0.35,0.05), p(-0.6,0.05)]],
-                Q: [[p(0,-1), p(-0.55,-0.75), p(-0.8,0), p(-0.55,0.75), p(0,1), p(0.55,0.75), p(0.8,0), p(0.55,-0.75), p(0,-1)], [p(0.2,0.35), p(0.75,1)]],
-                R: [[p(-0.6,1), p(-0.6,-1), p(0.3,-1), p(0.55,-0.7), p(0.55,-0.3), p(0.3,0), p(-0.6,0)], [p(-0.05,0), p(0.65,1)]],
-                S: [[p(0.6,-0.75), p(0.2,-1), p(-0.35,-0.9), p(-0.55,-0.55), p(-0.3,-0.2), p(0.25,0.05), p(0.55,0.4), p(0.35,0.85), p(-0.2,1), p(-0.65,0.75)]],
-                T: [[p(-0.8,-1), p(0.8,-1)], [p(0,-1), p(0,1)]],
-                U: [[p(-0.7,-1), p(-0.7,0.45), p(-0.4,1), p(0.4,1), p(0.7,0.45), p(0.7,-1)]],
-                V: [[p(-0.75,-1), p(0,1), p(0.75,-1)]],
-                W: [[p(-0.9,-1), p(-0.45,1), p(0,-0.2), p(0.45,1), p(0.9,-1)]],
-                X: [[p(-0.7,-1), p(0.7,1)], [p(0.7,-1), p(-0.7,1)]],
-                Y: [[p(-0.7,-1), p(0,-0.1), p(0.7,-1)], [p(0,-0.1), p(0,1)]],
-                Z: [[p(-0.7,-1), p(0.7,-1), p(-0.7,1), p(0.7,1)]]
+        // Smooth single-line letter/number paths (workbook style, not polygons)
+        function arcPts(cx, cy, rx, ry, a0, a1, steps) {
+            const pts = [];
+            const n = Math.max(8, steps | 0);
+            for (let i = 0; i <= n; i++) {
+                const t = a0 + (a1 - a0) * (i / n);
+                pts.push([cx + Math.cos(t) * rx, cy + Math.sin(t) * ry]);
+            }
+            return pts;
+        }
+        function linePts(a, b) { return [a, b]; }
+
+        function glyphMap(cx, cy, s) {
+            // Equal X/Y scale so circles stay circles (no oval squash)
+            const X = (x) => cx + x * s;
+            const Y = (y) => cy + y * s;
+            const P = (x, y) => [X(x), Y(y)];
+            const oval = (x, y, rx, ry, a0, a1, n) =>
+                arcPts(X(x), Y(y), Math.abs(rx) * s, Math.abs(ry) * s, a0, a1, n || 28);
+            // D-bowl glued to a vertical stem: starts at stem top, ends at stem bottom
+            const dBowl = (stemX, yTop, yBot, width, n) => {
+                const mid = (yTop + yBot) / 2;
+                const ry = (yBot - yTop) / 2;
+                return arcPts(X(stemX), Y(mid), width * s, ry * s, -Math.PI / 2, Math.PI / 2, n || 22);
             };
-            return lines[L] || [[p(-0.5,-0.5), p(0.5,0.5)]];
+            return { P, oval, dBowl };
+        }
+
+        function stickLetterPaths(L, cx, cy, s) {
+            const { P, oval, dBowl } = glyphMap(cx, cy, s);
+            const map = {
+                A: [ [P(0,-1), P(-0.78,1)], [P(0,-1), P(0.78,1)], [P(-0.38,0.22), P(0.38,0.22)] ],
+                B: [
+                    [P(-0.58,-1), P(-0.58,1)],
+                    dBowl(-0.58, -1, 0, 0.70),
+                    dBowl(-0.58, 0, 1, 0.80)
+                ],
+                C: [ oval(0.12, 0, 0.80, 0.92, Math.PI * 2 - 0.70, 0.70, 34) ],
+                D: [
+                    [P(-0.58,-1), P(-0.58,1)],
+                    dBowl(-0.58, -1, 1, 0.96, 28)
+                ],
+                E: [ [P(-0.58,-1), P(-0.58,1)], [P(-0.58,-1), P(0.70,-1)], [P(-0.58,0), P(0.46,0)], [P(-0.58,1), P(0.70,1)] ],
+                F: [ [P(-0.58,-1), P(-0.58,1)], [P(-0.58,-1), P(0.70,-1)], [P(-0.58,0), P(0.42,0)] ],
+                G: [
+                    oval(0.10, 0, 0.80, 0.90, Math.PI * 2 - 0.50, 0.50, 34),
+                    [P(0.80, 0.43), P(0.80, 0.12), P(0.20, 0.12)]
+                ],
+                H: [ [P(-0.58,-1), P(-0.58,1)], [P(0.58,-1), P(0.58,1)], [P(-0.58,0), P(0.58,0)] ],
+                I: [ [P(-0.36,-1), P(0.36,-1)], [P(0,-1), P(0,1)], [P(-0.36,1), P(0.36,1)] ],
+                J: [ [P(-0.18,-1), P(0.48,-1)], [P(0.28,-1), P(0.28,0.36), ...oval(-0.12, 0.36, 0.40, 0.58, 0, Math.PI, 16)] ],
+                K: [ [P(-0.58,-1), P(-0.58,1)], [P(0.72,-1), P(-0.58,0.08)], [P(-0.10,0.02), P(0.74,1)] ],
+                L: [ [P(-0.58,-1), P(-0.58,1), P(0.72,1)] ],
+                M: [ [P(-0.82,1), P(-0.82,-1), P(0,0.28), P(0.82,-1), P(0.82,1)] ],
+                N: [ [P(-0.62,1), P(-0.62,-1), P(0.62,1), P(0.62,-1)] ],
+                O: [ oval(0, 0, 0.80, 0.80, 0, Math.PI * 2, 40) ],
+                P: [
+                    [P(-0.58,1), P(-0.58,-1)],
+                    dBowl(-0.58, -1, 0.08, 0.74)
+                ],
+                Q: [
+                    oval(0, 0, 0.80, 0.80, 0, Math.PI * 2, 40),
+                    [P(0.22, 0.40), P(0.78, 1.02)]
+                ],
+                R: [
+                    [P(-0.58,-1), P(-0.58,1)],
+                    dBowl(-0.58, -1, 0.06, 0.78),
+                    [P(-0.58, 0.06), P(0.78, 1)]
+                ],
+                S: [[
+                    ...oval(0, -0.46, 0.54, 0.48, -0.20, -Math.PI * 1.5, 22),
+                    ...oval(0, 0.46, 0.54, 0.48, -Math.PI / 2, Math.PI, 22)
+                ]],
+                T: [ [P(-0.80,-1), P(0.80,-1)], [P(0,-1), P(0,1)] ],
+                U: [ [P(-0.64,-1), P(-0.64,0.28), ...oval(0, 0.28, 0.64, 0.68, Math.PI, 0, 20), P(0.64,-1)] ],
+                V: [ [P(-0.76,-1), P(0,1), P(0.76,-1)] ],
+                W: [ [P(-0.90,-1), P(-0.46,1), P(0,-0.08), P(0.46,1), P(0.90,-1)] ],
+                X: [ [P(-0.68,-1), P(0.68,1)], [P(0.68,-1), P(-0.68,1)] ],
+                Y: [ [P(-0.72,-1), P(0,-0.02)], [P(0.72,-1), P(0,-0.02), P(0,1)] ],
+                Z: [ [P(-0.68,-1), P(0.68,-1), P(-0.68,1), P(0.68,1)] ]
+            };
+            return map[L] || [[P(-0.5,-0.5), P(0.5,0.5)]];
+        }
+
+        function stickLowercasePaths(ch, cx, cy, s) {
+            const { P, oval, dBowl } = glyphMap(cx, cy, s);
+            const leftBowl = (stemX, yTop, yBot, width) => {
+                const mid = (yTop + yBot) / 2;
+                const ry = (yBot - yTop) / 2;
+                return arcPts(cx + stemX * s, cy + mid * s, width * s, ry * s, Math.PI / 2, Math.PI * 1.5, 22);
+            };
+            const map = {
+                a: [
+                    oval(-0.08, 0.28, 0.38, 0.38, 0, Math.PI * 2, 28),
+                    [P(0.30, -0.08), P(0.30, 0.66)]
+                ],
+                b: [
+                    [P(-0.38, -1.0), P(-0.38, 0.66)],
+                    dBowl(-0.38, -0.10, 0.66, 0.58)
+                ],
+                c: [ oval(0.06, 0.28, 0.40, 0.38, Math.PI * 2 - 0.65, 0.65, 24) ],
+                d: [
+                    [P(0.38, -1.0), P(0.38, 0.66)],
+                    leftBowl(0.38, -0.10, 0.66, 0.58)
+                ],
+                e: [[
+                    P(-0.42, 0.28), P(0.42, 0.28),
+                    ...oval(0, 0.28, 0.42, 0.40, 0, -Math.PI * 1.35, 24)
+                ]],
+                f: [
+                    [...oval(0.24, -0.76, 0.30, 0.22, 0.20, -Math.PI, 12), P(-0.06, 0.66)],
+                    [P(-0.32, -0.08), P(0.42, -0.08)]
+                ],
+                g: [
+                    oval(-0.06, 0.28, 0.38, 0.38, 0, Math.PI * 2, 26),
+                    [P(0.32, -0.08), P(0.32, 0.70), ...oval(-0.08, 0.78, 0.40, 0.34, 0, Math.PI, 16)]
+                ],
+                h: [
+                    [P(-0.40, -1.0), P(-0.40, 0.66)],
+                    [P(-0.40, 0.02), ...oval(0.10, 0.02, 0.50, 0.20, Math.PI, Math.PI * 2, 14), P(0.60, 0.66)]
+                ],
+                i: [
+                    oval(0, -0.40, 0.07, 0.07, 0, Math.PI * 2, 10),
+                    [P(0, -0.12), P(0, 0.66)]
+                ],
+                j: [
+                    oval(0.10, -0.40, 0.07, 0.07, 0, Math.PI * 2, 10),
+                    [P(0.10, -0.12), P(0.10, 0.70), ...oval(-0.22, 0.76, 0.32, 0.30, 0, Math.PI, 14)]
+                ],
+                k: [
+                    [P(-0.36, -1.0), P(-0.36, 0.66)],
+                    [P(0.46, -0.10), P(-0.36, 0.28)],
+                    [P(-0.08, 0.22), P(0.48, 0.66)]
+                ],
+                l: [ [P(0, -1.0), P(0, 0.66)] ],
+                m: [
+                    [P(-0.72, 0.66), P(-0.72, -0.08)],
+                    [P(-0.72, -0.08), ...oval(-0.32, -0.08, 0.40, 0.20, Math.PI, Math.PI * 2, 12), P(0.08, 0.66)],
+                    [P(0.08, -0.08), ...oval(0.48, -0.08, 0.40, 0.20, Math.PI, Math.PI * 2, 12), P(0.88, 0.66)]
+                ],
+                n: [
+                    [P(-0.48, 0.66), P(-0.48, -0.12)],
+                    [P(-0.48, 0.02), ...oval(0.08, 0.02, 0.50, 0.18, Math.PI, Math.PI * 2, 14), P(0.58, 0.66)]
+                ],
+                o: [ oval(0, 0.28, 0.40, 0.40, 0, Math.PI * 2, 28) ],
+                p: [
+                    [P(-0.32, -0.10), P(-0.32, 1.12)],
+                    oval(0.08, 0.28, 0.38, 0.38, 0, Math.PI * 2, 26)
+                ],
+                q: [
+                    oval(-0.08, 0.28, 0.38, 0.38, 0, Math.PI * 2, 26),
+                    [P(0.30, -0.10), P(0.30, 1.12)]
+                ],
+                r: [
+                    [P(-0.30, 0.66), P(-0.30, -0.12)],
+                    [P(-0.30, -0.12), ...oval(0.10, -0.12, 0.36, 0.18, Math.PI, Math.PI + 1.55, 10)]
+                ],
+                s: [[
+                    ...oval(0, 0.10, 0.34, 0.22, -0.20, -Math.PI * 1.5, 16),
+                    ...oval(0, 0.48, 0.34, 0.22, -Math.PI / 2, Math.PI, 16)
+                ]],
+                t: [
+                    [P(0, -0.55), P(0, 0.48), ...oval(0.22, 0.48, 0.22, 0.16, Math.PI, 0, 10)],
+                    [P(-0.30, -0.10), P(0.32, -0.10)]
+                ],
+                u: [
+                    [P(-0.48, -0.10), P(-0.48, 0.34), ...oval(0, 0.34, 0.48, 0.30, Math.PI, 0, 14), P(0.48, -0.10)],
+                    [P(0.48, -0.10), P(0.48, 0.66)]
+                ],
+                v: [ [P(-0.50, -0.10), P(0, 0.66), P(0.50, -0.10)] ],
+                w: [ [P(-0.68, -0.10), P(-0.34, 0.66), P(0, 0.08), P(0.34, 0.66), P(0.68, -0.10)] ],
+                x: [ [P(-0.44, -0.10), P(0.44, 0.66)], [P(0.44, -0.10), P(-0.44, 0.66)] ],
+                y: [
+                    [P(-0.48, -0.10), P(0, 0.66)],
+                    [P(0.48, -0.10), P(-0.10, 1.12)]
+                ],
+                z: [ [P(-0.40, -0.10), P(0.40, -0.10), P(-0.40, 0.66), P(0.40, 0.66)] ]
+            };
+            return map[ch] || [[P(-0.3,-0.3), P(0.3,0.3)]];
         }
 
         function stickNumberPaths(n, cx, cy, s) {
-            const p = (x, y) => [cx + x * s, cy + y * s];
+            const { P, oval } = glyphMap(cx, cy, s);
             const map = {
-                '0': [[p(0,-1), p(-0.55,-0.75), p(-0.75,0), p(-0.55,0.75), p(0,1), p(0.55,0.75), p(0.75,0), p(0.55,-0.75), p(0,-1)]],
-                '1': [[p(-0.25,-0.6), p(0,-1), p(0,1)], [p(-0.4,1), p(0.4,1)]],
-                '2': [[p(-0.65,-0.6), p(-0.3,-1), p(0.35,-1), p(0.65,-0.55), p(0.5,-0.1), p(-0.65,1), p(0.7,1)]],
-                '3': [[p(-0.55,-1), p(0.45,-1), p(0.65,-0.55), p(0.2,-0.1), p(0.65,0.35), p(0.45,1), p(-0.55,1)]],
-                '4': [[p(0.35,1), p(0.35,-1)], [p(0.35,-1), p(-0.7,0.35), p(0.75,0.35)]],
-                '5': [[p(0.6,-1), p(-0.55,-1), p(-0.55,-0.15), p(0.25,-0.15), p(0.65,0.25), p(0.55,0.85), p(0,1), p(-0.6,0.75)]],
-                '6': [[p(0.55,-0.85), p(0,-1), p(-0.6,-0.5), p(-0.7,0.2), p(-0.4,0.9), p(0.25,1), p(0.65,0.55), p(0.5,0.1), p(0,-0.1), p(-0.55,0.15)]],
-                '7': [[p(-0.65,-1), p(0.7,-1), p(0,1)]],
-                '8': [[p(0,-0.1), p(-0.45,-0.35), p(-0.45,-0.75), p(0,-1), p(0.45,-0.75), p(0.45,-0.35), p(0,-0.1),
-                       p(0.5,0.25), p(0.5,0.7), p(0,1), p(-0.5,0.7), p(-0.5,0.25), p(0,-0.1)]],
-                '9': [[p(0.55,0.85), p(0,1), p(-0.55,0.55), p(-0.55,0), p(-0.2,-0.35), p(0.35,-0.2), p(0.6,0.25), p(0.55,0.85), p(0.55,-1)]]
+                '0': [ oval(0, 0, 0.78, 0.78, 0, Math.PI * 2, 40) ],
+                '1': [ [P(-0.24, -0.50), P(0.08, -1), P(0.08, 1)], [P(-0.38, 1), P(0.50, 1)] ],
+                '2': [[
+                    ...oval(0.02, -0.48, 0.56, 0.44, Math.PI * 0.90, Math.PI * 2.05, 20),
+                    P(-0.58, 1), P(0.62, 1)
+                ]],
+                '3': [[
+                    ...oval(0.10, -0.48, 0.54, 0.44, Math.PI, Math.PI * 2.45, 20),
+                    ...oval(0.10, 0.48, 0.56, 0.46, -Math.PI / 2, Math.PI, 20)
+                ]],
+                '4': [ [P(0.28, 1), P(0.28, -1), P(-0.68, 0.28), P(0.72, 0.28)] ],
+                '5': [[
+                    P(0.58, -1), P(-0.52, -1), P(-0.52, 0.02),
+                    ...oval(0.08, 0.48, 0.58, 0.50, -Math.PI / 2, Math.PI * 0.92, 22)
+                ]],
+                '6': [
+                    [...oval(0.04, -0.06, 0.54, 0.90, -1.05, -Math.PI, 16), P(-0.50, 0.42)],
+                    oval(0.02, 0.42, 0.50, 0.50, Math.PI, Math.PI * 3, 26)
+                ],
+                '7': [ [P(-0.62, -1), P(0.66, -1), P(-0.08, 1)] ],
+                '8': [
+                    oval(0, -0.46, 0.46, 0.42, 0, Math.PI * 2, 24),
+                    oval(0, 0.46, 0.52, 0.46, 0, Math.PI * 2, 24)
+                ],
+                '9': [
+                    oval(0, -0.38, 0.50, 0.50, 0, Math.PI * 2, 24),
+                    [P(0.50, -0.38), P(0.50, 1)]
+                ],
+                '10': [
+                    [P(-0.82, -0.48), P(-0.58, -1), P(-0.58, 1)],
+                    [P(-0.92, 1), P(-0.24, 1)],
+                    oval(0.42, 0, 0.58, 1.00, 0, Math.PI * 2, 36)
+                ]
             };
-            return map[String(n)] || [[p(-0.5,0), p(0.5,0)]];
+            return map[String(n)] || [[P(-0.5, 0), P(0.5, 0)]];
         }
 
-        function stickShapePaths(sh, cx, cy, s) {
+                function stickShapePaths(sh, cx, cy, s) {
             if (sh === 'circle') {
-                const pts = [];
-                for (let i = 0; i <= 48; i++) {
-                    const a = (i / 48) * Math.PI * 2;
-                    pts.push([cx + Math.cos(a) * s, cy + Math.sin(a) * s]);
-                }
-                return [pts];
+                return [ arcPts(cx, cy, s, s, 0, Math.PI * 2, 40) ];
             }
             if (sh === 'square') {
+                const r = 8; // slight visual round via extra points not needed; lineJoin is round
                 return [[[cx-s, cy-s], [cx+s, cy-s], [cx+s, cy+s], [cx-s, cy+s], [cx-s, cy-s]]];
             }
             if (sh === 'triangle') {
-                return [[[cx, cy-s], [cx+s*1.1, cy+s*0.9], [cx-s*1.1, cy+s*0.9], [cx, cy-s]]];
+                return [[[cx, cy-s], [cx+s*1.08, cy+s*0.92], [cx-s*1.08, cy+s*0.92], [cx, cy-s]]];
             }
-            // star
             const pts = [];
             for (let i = 0; i < 5; i++) {
                 const a = -Math.PI/2 + i * 2 * Math.PI / 5;
                 const a2 = a + Math.PI / 5;
                 pts.push([cx + Math.cos(a) * s, cy + Math.sin(a) * s]);
-                pts.push([cx + Math.cos(a2) * s * 0.42, cy + Math.sin(a2) * s * 0.42]);
+                pts.push([cx + Math.cos(a2) * s * 0.40, cy + Math.sin(a2) * s * 0.40]);
             }
             pts.push(pts[0]);
             return [pts];
@@ -2711,17 +3019,22 @@
 
         function buildGuideFromStrokes(strokes) {
             const pts = [];
-            const spacing = 8;
+            const ranges = [];
+            const spacing = 7;
             for (const stroke of strokes) {
+                if (!stroke || stroke.length < 2) continue;
+                const start = pts.length;
                 pts.push(...samplePolyline(stroke, spacing));
+                ranges.push({ start, end: pts.length });
             }
+            paintStrokeRanges = ranges;
             return pts;
         }
 
         function drawStrokes(ctx, strokes) {
             ctx.beginPath();
             for (const stroke of strokes) {
-                if (!stroke.length) continue;
+                if (!stroke || !stroke.length) continue;
                 ctx.moveTo(stroke[0][0], stroke[0][1]);
                 for (let i = 1; i < stroke.length; i++) ctx.lineTo(stroke[i][0], stroke[i][1]);
             }
@@ -2733,20 +3046,26 @@
             if (!canvas) return '';
             const ctx = canvas.getContext('2d');
             const cx = canvas.width / 2, cy = canvas.height / 2;
-            const s = Math.min(canvas.width, canvas.height) * 0.32;
+            const box = Math.min(canvas.width, canvas.height);
+            const s = box * 0.34;
             ctx.save();
-            // Thin single-line guide (not a thick hollow outline)
-            ctx.strokeStyle = '#B8B8B8';
-            ctx.lineWidth = Math.max(3, Math.floor(Math.min(canvas.width, canvas.height) / 140));
+            ctx.strokeStyle = '#8D8D8D';
+            ctx.lineWidth = Math.max(3, Math.floor(box / 95));
             ctx.lineJoin = 'round';
             ctx.lineCap = 'round';
+            ctx.setLineDash([4, 6]);
             let label = '';
             let strokes = [];
 
             if (paintMode === 'letters') {
-                const L = PAINT_LETTERS[paintGuideIndex % PAINT_LETTERS.length];
-                label = 'Trace the letter ' + L;
-                strokes = stickLetterPaths(L, cx, cy, s);
+                const g = PAINT_LETTER_GUIDES[paintGuideIndex % PAINT_LETTER_GUIDES.length];
+                if (g.kind === 'upper') {
+                    label = 'Trace the big letter ' + g.ch;
+                    strokes = stickLetterPaths(g.ch, cx, cy, s);
+                } else {
+                    label = 'Trace the little letter ' + g.ch;
+                    strokes = stickLowercasePaths(g.ch, cx, cy, s);
+                }
             } else if (paintMode === 'numbers') {
                 const n = PAINT_NUMBERS[paintGuideIndex % PAINT_NUMBERS.length];
                 label = 'Trace the number ' + n;
@@ -2757,9 +3076,29 @@
                 strokes = stickShapePaths(sh, cx, cy, s * 1.05);
             }
             drawStrokes(ctx, strokes);
-            ctx.restore();
+            ctx.setLineDash([]);
             paintGuidePoints = buildGuideFromStrokes(strokes);
             resetHitMap();
+            const first = strokes[0] && strokes[0][0];
+            const lastStroke = strokes[strokes.length - 1];
+            const last = lastStroke && lastStroke[lastStroke.length - 1];
+            if (first) {
+                ctx.fillStyle = '#2A9D8F';
+                ctx.beginPath();
+                ctx.arc(first[0], first[1], Math.max(7, s * 0.055), 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(first[0], first[1], Math.max(3, s * 0.022), 0, Math.PI * 2);
+                ctx.fill();
+            }
+            if (last && first && Math.hypot(last[0] - first[0], last[1] - first[1]) > 14) {
+                ctx.fillStyle = '#E63946';
+                ctx.beginPath();
+                ctx.arc(last[0], last[1], Math.max(5, s * 0.038), 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
             return label;
         }
 
@@ -2773,7 +3112,14 @@
 
         function skipPaintGuide() {
             if (paintMode === 'paint' || paintCompleting) return;
-            paintGuideIndex++;
+            const max = paintMode === 'letters' ? PAINT_LETTER_GUIDES.length : paintMode === 'numbers' ? PAINT_NUMBERS.length : 4;
+            paintGuideIndex = (paintGuideIndex + 1) % max;
+            showPaintGuide(true);
+        }
+        function prevPaintGuide() {
+            if (paintMode === 'paint' || paintCompleting) return;
+            const max = paintMode === 'letters' ? PAINT_LETTER_GUIDES.length : paintMode === 'numbers' ? PAINT_NUMBERS.length : 4;
+            paintGuideIndex = (paintGuideIndex - 1 + max) % max;
             showPaintGuide(true);
         }
 
@@ -2793,12 +3139,23 @@
             if (!paintGuidePoints.length) return 0;
             return paintHitCount / paintGuidePoints.length;
         }
+        function allStrokesTraced() {
+            if (!paintStrokeRanges.length || !paintHitFlags) return false;
+            for (const r of paintStrokeRanges) {
+                const n = r.end - r.start;
+                if (n <= 0) continue;
+                let hit = 0;
+                for (let i = r.start; i < r.end; i++) if (paintHitFlags[i]) hit++;
+                if (hit / n < 0.72) return false; // every line of the letter must be drawn
+            }
+            return true;
+        }
 
         function completePaintGuide() {
             if (paintMode === 'paint' || paintCompleting) return;
             const cov = traceCoverage();
-            // Must nearly finish the path (partial letter should NOT pass)
-            if (cov < 0.82) {
+            // Must finish the whole letter/number (not just two lines of A)
+            if (cov < 0.90 || !allStrokesTraced()) {
                 failTraceAndReset();
                 return;
             }
@@ -2854,7 +3211,7 @@
                 paintLastX = p.x; paintLastY = p.y;
                 const size = paintMode === 'paint' ? (BRUSH_SIZES[paintBrush] || 14) : Math.max(10, Math.floor(Math.min(canvas.width, canvas.height) / 45));
                 if (paintMode !== 'paint') {
-                    markGuideHits(p.x, p.y, size * 1.4);
+                    markGuideHits(p.x, p.y, size * 1.15);
                 }
             }
 
@@ -2889,7 +3246,7 @@
                         const t = s / steps;
                         const x = paintLastX + (p.x - paintLastX) * t;
                         const y = paintLastY + (p.y - paintLastY) * t;
-                        markGuideHits(x, y, size * 1.45);
+                        markGuideHits(x, y, size * 1.15);
                     }
                 }
                 paintLastX = p.x; paintLastY = p.y;
@@ -2901,7 +3258,7 @@
                 if (paintMode === 'paint' || paintCompleting) return;
                 const cov = traceCoverage();
                 // Only auto-complete when the path is essentially finished
-                if (cov >= 0.85) {
+                if (cov >= 0.93 && allStrokesTraced()) {
                     completePaintGuide();
                     return;
                 }
