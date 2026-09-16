@@ -1,11 +1,13 @@
-// --- STELLA'S GAME SERVICE WORKER (v44.0 PUBLIC) ---
-const CACHE_NAME = 'stellas-game-v44';
+// --- STELLA'S GAME SERVICE WORKER (v46.0 PUBLIC) ---
+const CACHE_NAME = 'stellas-game-v46';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
+  './icons/icon-maskable-192.png',
+  './icons/icon-maskable-512.png',
   './sounds/cat.mp3',
   './sounds/chicken.mp3',
   './sounds/cow.mp3',

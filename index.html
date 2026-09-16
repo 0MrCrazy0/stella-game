@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <title>Stella's Game — Early Learning for Little Ones</title>
     <meta name="description" content="A warm, voice-first early learning game: colors, shapes, numbers, letters, farm animals and finger paint. Made for ages 0 to 5.">
@@ -59,12 +59,16 @@
             flex-direction: column;
             align-items: center;
             touch-action: manipulation;
+            padding-left: env(safe-area-inset-left, 0);
+            padding-right: env(safe-area-inset-right, 0);
+            padding-bottom: env(safe-area-inset-bottom, 0);
         }
 
         /* --- MAGIC HEADER --- */
         header {
             width: 100%;
             padding: 18px 20px;
+            padding-top: calc(18px + env(safe-area-inset-top, 0px));
             text-align: center;
             background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(8px);
@@ -104,6 +108,7 @@
             justify-content: flex-start;
             align-items: stretch;
             position: relative;
+            overflow-x: clip;
         }
 
         /* --- SCREEN ANIMATIONS --- */
@@ -145,22 +150,22 @@
         /* --- ROADMAP GRID & MILESTONE CARDS --- */
         .roadmap-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 22px;
-            margin-top: 16px;
-            padding-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 10px;
+            padding-bottom: 28px;
         }
 
         .milestone-card {
             background: white;
-            border-radius: 28px;
-            padding: 24px 18px 22px;
+            border-radius: 24px;
+            padding: 18px 14px 16px;
             text-align: center;
-            box-shadow: 0 10px 0px rgba(255, 182, 193, 0.18);
-            border: 5px solid #FFF;
+            box-shadow: 0 8px 0px rgba(255, 182, 193, 0.18);
+            border: 4px solid #FFF;
             cursor: pointer;
             transition: transform 0.2s;
-            min-height: 210px;
+            min-height: 0;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -178,11 +183,11 @@
 
         .age-badge {
             display: inline-block;
-            padding: 8px 18px;
-            border-radius: 20px;
-            font-size: 1rem;
+            padding: 6px 14px;
+            border-radius: 18px;
+            font-size: 0.9rem;
             font-weight: 800;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
         .card-gold .age-badge { background-color: #FFF8E1; color: #9A7200; }
         .card-pink .age-badge { background-color: #FFE4EC; color: #C2185B; }
@@ -190,8 +195,8 @@
         .card-green .age-badge { background-color: #E8F8F0; color: #1B5E20; }
         .card-purple .age-badge { background-color: #F3E8FF; color: #6A1B9A; }
 
-        .milestone-card h3 { font-size: 1.55rem; margin-bottom: 8px; color: var(--text-dark); }
-        .milestone-card p { font-size: 1.05rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 16px; flex: 1; }
+        .milestone-card h3 { font-size: 1.35rem; margin-bottom: 6px; color: var(--text-dark); }
+        .milestone-card p { font-size: 0.95rem; color: var(--text-muted); line-height: 1.35; margin-bottom: 10px; flex: 1; }
 
         /* --- SUB-MENU DESIGN FOR MULTIPLE MINI-GAMES --- */
         .submenu-container {
@@ -261,7 +266,7 @@
             text-align: center;
             min-height: 0;
             width: 100%;
-            max-width: 640px;
+            max-width: min(640px, 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -292,13 +297,26 @@
         .sound-pad {
             width: 110px;
             height: 110px;
+            min-width: 110px;
+            min-height: 110px;
             border-radius: 28px;
             border: 5px solid white;
             box-shadow: 0 8px 0 rgba(0,0,0,0.12);
             cursor: pointer;
             transition: transform 0.1s;
+            padding: 0;
+            font-family: inherit;
+            -webkit-appearance: none;
+            appearance: none;
+            touch-action: manipulation;
+            position: relative;
+            z-index: 1;
         }
         .sound-pad:active { transform: scale(0.92); }
+        .sound-pad:focus-visible {
+            outline: 4px solid var(--stella-gold);
+            outline-offset: 3px;
+        }
 
         /* --- FARM ANIMALS --- */
         .farm-grid {
@@ -310,6 +328,7 @@
             margin: auto 0;
         }
         .farm-animal {
+            min-width: 96px;
             background: white;
             border-radius: 24px;
             border: 5px solid #FFE4E1;
@@ -344,6 +363,55 @@
         .farm-animal .emoji { font-size: 2.8rem; line-height: 1; }
         .farm-animal .label { font-size: 1rem; font-weight: bold; color: var(--text-dark); }
 
+        /* --- ABC SONG PLAYER --- */
+        .abc-player-wrap {
+            width: 100%;
+            max-width: 560px;
+            aspect-ratio: 16 / 9;
+            background: #1a1a2e;
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 12px auto;
+            position: relative;
+            box-shadow: 0 10px 24px rgba(26, 26, 46, 0.25);
+        }
+        .abc-iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            opacity: 0;
+            pointer-events: none;
+            background: #1a1a2e;
+        }
+        .abc-iframe.is-on {
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 2;
+        }
+        .abc-poster {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px;
+            text-align: center;
+            background:
+                radial-gradient(circle at 30% 30%, rgba(255,143,171,0.35), transparent 50%),
+                radial-gradient(circle at 70% 60%, rgba(255,195,0,0.3), transparent 45%),
+                linear-gradient(145deg, #2b2d42, #1a1a2e 60%);
+            color: #fff;
+        }
+        .abc-poster-emoji { font-size: 2.6rem; line-height: 1; }
+        .abc-poster-title { font-size: 1.6rem; font-weight: 800; }
+        .abc-status { font-size: 1rem; opacity: 0.92; max-width: 90%; }
+        .abc-poster-play { margin-top: 6px; }
+
         /* --- PEEKABOO --- */
         .peekaboo-area {
             display: flex;
@@ -366,7 +434,15 @@
             font-size: 3rem;
             cursor: pointer;
             transition: transform 0.2s, background 0.3s;
+            position: relative;
+            z-index: 1;
+            font-family: inherit;
+            color: inherit;
+            padding: 0;
+            -webkit-appearance: none;
+            appearance: none;
         }
+        .peek-door.lit-up { z-index: 3; }
         .peek-door:active { transform: scale(0.95); }
         .peek-door.open { background: linear-gradient(135deg, #FFF8F0, #FFE8F0); }
 
@@ -588,8 +664,10 @@
             position: relative;
             width: 100%;
             max-width: none;
-            height: calc(100dvh - 90px);
-            min-height: 420px;
+            /* Header ~72–110px depending on safe-area; keep canvas inside viewport */
+            height: calc(100dvh - 7.5rem - env(safe-area-inset-top, 0px));
+            max-height: calc(100dvh - 5.5rem - env(safe-area-inset-top, 0px));
+            min-height: 280px;
             padding: 0 !important;
             margin: 0 !important;
             gap: 0 !important;
@@ -677,20 +755,22 @@
         .paint-swatch.active { outline: 3px solid var(--text-dark); }
         .paint-always-nav {
             position: absolute;
-            left: 10px;
-            top: 10px;
+            left: max(10px, env(safe-area-inset-left, 0px));
+            top: max(10px, env(safe-area-inset-top, 0px));
             z-index: 25;
             display: flex;
             gap: 8px;
             align-items: center;
             pointer-events: auto;
+            flex-wrap: wrap;
+            max-width: calc(100% - 20px);
         }
         .paint-always-nav .back-btn { margin: 0; }
         .paint-trace-hud {
             position: absolute;
             left: 10px;
             right: 10px;
-            top: 64px;
+            top: 58px;
             z-index: 15;
             display: none;
             flex-wrap: wrap;
@@ -698,6 +778,7 @@
             align-items: center;
             justify-content: space-between;
             pointer-events: none;
+            max-width: 100%;
         }
         .paint-trace-hud .hud-left,
         .paint-trace-hud .hud-right {
@@ -750,6 +831,18 @@
         }
         .camera-btn-main:active { transform: translateY(3px); box-shadow: none; }
 
+        .hub-scroll-hint {
+            display: none;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin: 0 0 6px;
+        }
+        @media (min-width: 641px) and (max-height: 860px) {
+            .hub-scroll-hint { display: block; }
+        }
+
         .header-row {
             display: flex;
             align-items: center;
@@ -792,7 +885,7 @@
         /* PC: keep every game pinned under the header (no vertical centering gap) */
         @media (min-width: 641px) {
             .container {
-                padding: 8px 20px 28px;
+                padding: 6px 20px 20px;
                 justify-content: flex-start;
             }
             .screen.active {
@@ -802,10 +895,37 @@
             .game-box {
                 min-height: 0 !important;
                 margin: 0 auto !important;
+                max-height: none;
             }
             body {
                 justify-content: flex-start;
             }
+            .roadmap-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 14px;
+                margin-top: 8px;
+                padding-bottom: 16px;
+            }
+            .milestone-card .play-btn {
+                padding: 10px 22px;
+                font-size: 1.05rem;
+                min-height: 44px;
+            }
+            #screen-menu h2 { font-size: 1.45rem; margin-top: 4px !important; }
+            #screen-menu > p { font-size: 0.98rem !important; margin: 4px auto 6px !important; }
+            .camera-btn-main { padding: 8px 14px; font-size: 0.95rem; }
+        }
+
+        /* Laptop ~1280×800: fit hub with less fold-scroll */
+        @media (min-width: 900px) and (max-height: 860px) {
+            header { padding: 10px 16px; padding-top: calc(10px + env(safe-area-inset-top, 0px)); }
+            h1 { font-size: 1.85rem; margin-bottom: 0; }
+            .subtitle { font-size: 0.9rem; }
+            .roadmap-grid { gap: 12px; }
+            .milestone-card { padding: 12px 12px 12px; border-radius: 20px; }
+            .milestone-card h3 { font-size: 1.2rem; }
+            .milestone-card p { font-size: 0.88rem; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+            .age-badge { margin-bottom: 4px; padding: 4px 10px; font-size: 0.8rem; }
         }
 
         /* Responsive – phones & small tablets */
@@ -834,7 +954,10 @@
             .abc-choice { width: 120px; padding: 12px; }
             .abc-choice svg { width: 64px; height: 64px; }
             .mobile-element { width: 86px; height: 86px; }
-            .drag-workspace { height: 300px; }
+            .drag-workspace { height: 340px; }
+            .farm-animal { min-width: 88px; min-height: 110px; }
+            .paint-swatch { width: 40px; height: 40px; }
+            .abc-bubble { width: 84px; height: 84px; font-size: 2rem; }
             .play-btn { padding: 14px 28px; font-size: 1.2rem; min-height: 54px; }
             .back-btn { padding: 12px 22px; font-size: 1.1rem; min-height: 50px; }
             .container { padding: 4px 10px 16px; }
@@ -871,43 +994,44 @@
                 <p id="moment-status" style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;min-height:1.1em;"></p>
             </div>
 
+            <p class="hub-scroll-hint" aria-hidden="true">Swipe or scroll for more games ↓</p>
             <div class="roadmap-grid">
-                <div class="milestone-card card-gold" onclick="showSubmenu('sensory')">
+                <div role="button" tabindex="0" class="milestone-card card-gold" onclick="showSubmenu('sensory')" onkeydown="cardKeyActivate(event, () => showSubmenu('sensory'))">
                     <span class="age-badge">0 - 12 Months</span>
                     <h3>👀 Sensory Fun</h3>
                     <p>Pretty shapes that move and soft music for little eyes</p>
                     <button class="play-btn">Play</button>
                 </div>
 
-                <div class="milestone-card card-pink" onclick="showSubmenu('colors')">
+                <div role="button" tabindex="0" class="milestone-card card-pink" onclick="showSubmenu('colors')" onkeydown="cardKeyActivate(event, () => showSubmenu('colors'))">
                     <span class="age-badge">1 - 2 Years</span>
                     <h3>🎨 Colors</h3>
                     <p>Find the colors and learn their names</p>
                     <button class="play-btn">Play</button>
                 </div>
 
-                <div class="milestone-card card-blue" onclick="showSubmenu('shapes')">
+                <div role="button" tabindex="0" class="milestone-card card-blue" onclick="showSubmenu('shapes')" onkeydown="cardKeyActivate(event, () => showSubmenu('shapes'))">
                     <span class="age-badge">2 - 3 Years</span>
                     <h3>🔷 Shapes</h3>
                     <p>Drag the shapes home and find the biggest ones</p>
                     <button class="play-btn">Play</button>
                 </div>
 
-                <div class="milestone-card card-green" onclick="showSubmenu('math')">
+                <div role="button" tabindex="0" class="milestone-card card-green" onclick="showSubmenu('math')" onkeydown="cardKeyActivate(event, () => showSubmenu('math'))">
                     <span class="age-badge">3 - 4 Years</span>
                     <h3>🔢 Numbers</h3>
                     <p>Count the stars and see which side has more</p>
                     <button class="play-btn">Play</button>
                 </div>
 
-                <div class="milestone-card card-purple" onclick="showSubmenu('english')">
+                <div role="button" tabindex="0" class="milestone-card card-purple" onclick="showSubmenu('english')" onkeydown="cardKeyActivate(event, () => showSubmenu('english'))">
                     <span class="age-badge">4 - 5 Years</span>
                     <h3>🔤 Letters</h3>
                     <p>Match letters to pictures and pop the bubbles</p>
                     <button class="play-btn">Play</button>
                 </div>
 
-                <div class="milestone-card card-gold" onclick="showSubmenu('create')" style="border-color:#06D6A0;">
+                <div role="button" tabindex="0" class="milestone-card card-gold" onclick="showSubmenu('create')" onkeydown="cardKeyActivate(event, () => showSubmenu('create'))" style="border-color:#06D6A0;">
                     <span class="age-badge" style="background:#E8FFF6;color:#0B7A5A;">Create</span>
                     <h3>🎨 Create & Paint</h3>
                     <p>Finger paint, letters, numbers and shapes to trace</p>
@@ -970,24 +1094,30 @@
             <button class="back-btn" onclick="stopAbcSong(); goBackToSubmenu('sensory')">← Back</button>
             <div class="game-box" style="max-width:720px;">
                 <div class="game-prompt">ABC Song 🔤</div>
-                <div id="abc-player-wrap" style="width:100%; max-width:560px; aspect-ratio:16/9; background:#1a1a2e; border-radius:20px; overflow:hidden; margin:12px auto; position:relative;">
+                <div id="abc-player-wrap" class="abc-player-wrap">
+                    <div id="abc-poster" class="abc-poster" role="img" aria-label="ABC Song video placeholder">
+                        <div class="abc-poster-emoji">🔤🎵</div>
+                        <div class="abc-poster-title">ABC Song</div>
+                        <div id="abc-status" class="abc-status">Tap Play when you are ready</div>
+                        <button type="button" class="play-btn abc-poster-play" onclick="playAbcSong()">▶ Play song</button>
+                    </div>
                     <iframe id="abc-iframe"
                         title="ABC Song"
-                        style="width:100%; height:100%; border:0;"
-                        src="https://www.youtube.com/embed/ccEpTTZW34g?rel=0&modestbranding=1&playsinline=1&origin=https://0mrcrazy0.github.io"
+                        class="abc-iframe"
+                        src="about:blank"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                         allowfullscreen
                         referrerpolicy="strict-origin-when-cross-origin">
                     </iframe>
                 </div>
                 <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:16px;">
-                    <button class="play-btn" onclick="playAbcSong()">▶ Play in game</button>
-                    <button class="back-btn" onclick="stopAbcSong()" style="margin-bottom:0;">■ Stop</button>
-                    <button class="play-btn" onclick="fullscreenAbcSong()" style="background:linear-gradient(135deg,#457B9D,#9B5DE5);">⛶ Fullscreen</button>
-                    <button class="play-btn" onclick="window.open('https://www.youtube.com/watch?v=ccEpTTZW34g','_blank')" style="background:linear-gradient(135deg,#E63946,#F77F00);">▶ Open YouTube</button>
+                    <button type="button" class="play-btn" onclick="playAbcSong()">▶ Play in game</button>
+                    <button type="button" class="back-btn" onclick="stopAbcSong()" style="margin-bottom:0;">■ Stop</button>
+                    <button type="button" class="play-btn" onclick="fullscreenAbcSong()" style="background:linear-gradient(135deg,#457B9D,#9B5DE5);">⛶ Fullscreen</button>
+                    <button type="button" class="play-btn" onclick="openAbcYouTube()" style="background:linear-gradient(135deg,#E63946,#F77F00);">▶ Open YouTube</button>
                 </div>
-                <p style="color: var(--text-muted); font-style: italic; margin-top:12px; font-size:0.95rem;">
-                    Needs internet. If you see a black screen, tap <strong>Open YouTube</strong> — that always works.
+                <p id="abc-help" style="color: var(--text-muted); font-style: italic; margin-top:12px; font-size:0.95rem;">
+                    Needs internet. Dark or blank box? Tap <strong>Open YouTube</strong> — that always works on phones.
                 </p>
             </div>
         </div>
@@ -1102,14 +1232,14 @@
         <div id="game-shapes-pop" class="screen">
             <button class="back-btn" onclick="goBackToSubmenu('shapes')">← Back</button>
             <div class="game-box">
-                <div class="game-prompt">Pop the shapes</div>
+                <div class="game-prompt" id="prompt-shapes-pop">Pop the shapes</div>
                 <div class="color-options" id="options-shapes-pop"></div>
             </div>
         </div>
         <div id="game-math-touch" class="screen">
             <button class="back-btn" onclick="goBackToSubmenu('math')">← Back</button>
             <div class="game-box">
-                <div class="game-prompt" id="prompt-math-touch">Tap the number</div>
+                <div class="game-prompt" id="prompt-math-touch">Tap 1</div>
                 <div class="math-answers" id="answers-math-touch"></div>
             </div>
         </div>
@@ -1273,6 +1403,8 @@
         // Speech queue — never cuts off the previous line mid-sentence
         let _speakQueue = [];
         let _speakBusy = false;
+        let _speakGen = 0; // bumped on clear so stale onend cannot advance games
+        let _speakWatchdog = null;
         let voiceMuted = false;
         try { voiceMuted = localStorage.getItem('stella-voice-mute') === '1'; } catch (e) {}
 
@@ -1291,23 +1423,36 @@
             voiceMuted = !voiceMuted;
             try { localStorage.setItem('stella-voice-mute', voiceMuted ? '1' : '0'); } catch (e) {}
             if (voiceMuted) {
-                try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {}
-                _speakBusy = false;
+                clearSpeakQueue();
             }
             updateVoiceMuteBtn();
             _processSpeakQueue();
         }
 
         function speak(text, opts = {}) {
-            _speakQueue.push({ text: String(text), opts: opts || {} });
+            const t = String(text == null ? '' : text).trim();
+            if (!t) return;
+            _speakQueue.push({ text: t, opts: opts || {} });
             _processSpeakQueue();
+        }
+
+        function _clearSpeakWatchdog() {
+            if (_speakWatchdog) {
+                try { clearTimeout(_speakWatchdog); } catch (e) {}
+                _speakWatchdog = null;
+            }
         }
 
         function _processSpeakQueue() {
             if (_speakBusy) return;
             const job = _speakQueue.shift();
             if (!job) return;
+            const gen = _speakGen;
+            let finished = false;
             const finish = () => {
+                if (finished || gen !== _speakGen) return; // cleared / left game
+                finished = true;
+                _clearSpeakWatchdog();
                 _speakBusy = false;
                 try { if (job.opts.onEnd) job.opts.onEnd(); } catch (e) {}
                 _processSpeakQueue();
@@ -1334,14 +1479,22 @@
                 u.onend = finish;
                 u.onerror = finish;
                 speechSynthesis.speak(u);
+                // Chrome can leave speechSynthesis hanging with no onend — unblock queue
+                _clearSpeakWatchdog();
+                _speakWatchdog = setTimeout(() => {
+                    try { speechSynthesis.cancel(); } catch (e) {}
+                    finish();
+                }, 8000);
             } catch (e) {
                 finish();
             }
         }
 
         function clearSpeakQueue() {
+            _speakGen++;
             _speakQueue = [];
             _speakBusy = false;
+            _clearSpeakWatchdog();
             try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch(e) {}
         }
 
@@ -1380,6 +1533,7 @@
             gameSession++; // invalidate pending scheduleNext callbacks
             clearSpeakQueue();
             try { if (typeof stopAbcSong === 'function') stopAbcSong(); } catch(e) {}
+            try { if (typeof stopConfetti === 'function') stopConfetti(); } catch(e) {}
             if (activeAnimalAudio) {
                 try { activeAnimalAudio.pause(); activeAnimalAudio.currentTime = 0; } catch(e) {}
                 activeAnimalAudio = null;
@@ -1389,6 +1543,7 @@
             document.querySelectorAll('.lit-up').forEach(el => el.classList.remove('lit-up'));
             // Stop any HTMLAudioElements that might still be playing
             document.querySelectorAll('audio').forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e) {} });
+            try { paintDrawing = false; paintCompleting = false; } catch (e) {}
         }
 
         // Natural teacher-style praise (short phrases TTS reads clearly)
@@ -1524,9 +1679,17 @@
         // --- SHIMMERING CONFETTI REWARD ---
         const canvas = document.getElementById('confetti-canvas');
         const ctx = canvas.getContext('2d');
-        let confetti = [], confettiId = null;
+        let confetti = [], confettiId = null, confettiHideTimer = null;
         function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+        function stopConfetti() {
+            if (confettiId) { try { cancelAnimationFrame(confettiId); } catch (e) {} confettiId = null; }
+            if (confettiHideTimer) { try { clearTimeout(confettiHideTimer); } catch (e) {} confettiHideTimer = null; }
+            confetti = [];
+            try { ctx.clearRect(0, 0, canvas.width, canvas.height); } catch (e) {}
+            canvas.style.display = 'none';
+        }
 
         function triggerConfetti() {
             playSound('victory');
@@ -1546,8 +1709,9 @@
                 });
             }
             if (confettiId) cancelAnimationFrame(confettiId);
+            if (confettiHideTimer) clearTimeout(confettiHideTimer);
             animateConfetti();
-            setTimeout(() => { canvas.style.display = 'none'; cancelAnimationFrame(confettiId); }, 2200);
+            confettiHideTimer = setTimeout(() => { canvas.style.display = 'none'; cancelAnimationFrame(confettiId); confettiId = null; confettiHideTimer = null; }, 2200);
         }
 
         function animateConfetti() {
@@ -1605,6 +1769,10 @@
             ]
         };
 
+        function cardKeyActivate(e, fn) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); }
+        }
+
         function showMenu() {
             stopAllGameActivity();
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1630,8 +1798,13 @@
             SUBMENU_DATA[category].forEach(game => {
                 const card = document.createElement('div');
                 card.className = 'game-select-card';
-                card.innerHTML = `<h4>${game.name}</h4><p>${game.desc}</p><button class="play-btn">Play</button>`;
-                card.onclick = () => launchGame(game.run);
+                card.setAttribute('role', 'button');
+                card.setAttribute('tabindex', '0');
+                card.setAttribute('aria-label', 'Play ' + game.name.replace(/^\S+\s/, ''));
+                card.innerHTML = `<h4>${game.name}</h4><p>${game.desc}</p><button type="button" class="play-btn">Play</button>`;
+                const go = () => launchGame(game.run);
+                card.onclick = go;
+                card.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
                 container.appendChild(card);
             });
             document.getElementById('screen-submenu').classList.add('active');
@@ -1648,7 +1821,12 @@
             // Four create games share one studio screen
             const screenId = gameId.startsWith('create-') ? 'create-studio' : gameId;
             const el = document.getElementById(`game-${screenId}`);
-            if (el) el.classList.add('active');
+            if (!el) {
+                speak('That game is not ready yet');
+                document.getElementById('screen-submenu')?.classList.add('active');
+                return;
+            }
+            el.classList.add('active');
             
             if (gameId === 'sensory-mobile') initSensoryMobile();
             if (gameId === 'sensory-soundboard') initSensorySoundboard();
@@ -1706,11 +1884,15 @@
             speak("Tap the music pads!");
             const pads = document.getElementById('soundboard-pads'); pads.innerHTML = '';
             const hex = ['#E63946', '#F77F00', '#FCBF49', '#2A9D8F', '#457B9D', '#9B5DE5', '#FF6B9D', '#06D6A0', '#4CC9F0'];
-            for(let i=0; i<9; i++) {
-                const pad = document.createElement('div');
-                pad.className = 'sound-pad'; 
+            for (let i = 0; i < 9; i++) {
+                const pad = document.createElement('button');
+                pad.type = 'button';
+                pad.className = 'sound-pad';
+                pad.setAttribute('aria-label', 'Music pad ' + (i + 1));
+                pad.dataset.padIndex = String(i + 1);
                 pad.style.backgroundColor = hex[i];
-                pad.onclick = () => playSound(i);
+                const tone = i;
+                pad.addEventListener('click', () => playSound(tone));
                 pads.appendChild(pad);
             }
         }
@@ -1735,12 +1917,13 @@
             FARM_ANIMALS.forEach(a => {
                 const card = document.createElement('div');
                 card.className = 'farm-animal';
+                card.setAttribute('role', 'button');
+                card.setAttribute('aria-label', a.name);
                 card.innerHTML = `<div class="emoji">${a.emoji}</div><div class="label">${a.name}</div>`;
                 card.onclick = () => {
                     lightUp(card);
-                    // Name first, then real animal sound (no talking over the sound)
-                    speak(a.phrase);
-                    scheduleNext(() => playAnimalSound(a.file), 600);
+                    // Name first, then real animal sound after speech ends
+                    speak(a.phrase, { onEnd: () => playAnimalSound(a.file) });
                 };
                 grid.appendChild(card);
             });
@@ -1754,56 +1937,103 @@
             document.getElementById('prompt-peekaboo').innerText = 'Where is the happy face?';
             const faces = ['😊', '😄', '🥰', '😍'];
             const winner = Math.floor(Math.random() * 3);
-            for (let i = 0; i < 3; i++) {
-                const door = document.createElement('div');
+            const faceBehind = faces[Math.floor(Math.random() * faces.length)];
+            // Pre-assign what is behind each door so tap index cannot mismatch reveal
+            const behind = ['🌙', '🌙', '🌙'];
+            behind[winner] = faceBehind;
+            behind.forEach((content, doorIndex) => {
+                const door = document.createElement('button');
+                door.type = 'button';
                 door.className = 'peek-door';
-                door.innerHTML = '🚪';
-                door.onclick = () => {
+                door.dataset.doorIndex = String(doorIndex);
+                door.setAttribute('aria-label', 'Door ' + (doorIndex + 1));
+                door.textContent = '🚪';
+                const reveal = content;
+                const isWinner = doorIndex === winner;
+                door.addEventListener('click', (ev) => {
+                    ev.preventDefault();
+                    ev.stopPropagation();
                     if (door.classList.contains('open')) return;
                     door.classList.add('open');
-                    if (i === winner) {
-                        door.innerHTML = faces[Math.floor(Math.random() * faces.length)];
+                    door.textContent = reveal;
+                    door.setAttribute('aria-label', isWinner ? 'Happy face' : 'Moon');
+                    if (isWinner) {
                         lightUp(door);
                         playSound('success');
                         speak("Peekaboo! I see you!");
                         scheduleNext(() => { triggerConfetti(); scheduleNext(() => initSensoryPeekaboo(), 2000); }, 800);
                     } else {
-                        door.innerHTML = '🌙';
                         playSound('fail');
                         speak("Try another one");
                     }
-                };
+                });
                 area.appendChild(door);
-            }
+            });
         }
 
         // --- ABC SONG (YouTube embed) ---
         
+        const ABC_YT_WATCH = 'https://www.youtube.com/watch?v=ccEpTTZW34g';
+        const ABC_YT_EMBED = 'https://www.youtube.com/embed/ccEpTTZW34g?rel=0&modestbranding=1&playsinline=1';
+
+        function setAbcStatus(msg) {
+            const el = document.getElementById('abc-status');
+            if (el) el.textContent = msg;
+        }
+
+        function showAbcPoster(show) {
+            const poster = document.getElementById('abc-poster');
+            const iframe = document.getElementById('abc-iframe');
+            const wrap = document.getElementById('abc-player-wrap');
+            if (poster) poster.style.display = show ? 'flex' : 'none';
+            if (iframe) iframe.classList.toggle('is-on', !show);
+            if (wrap) wrap.classList.toggle('is-playing', !show);
+        }
+
         function initAbcSong() {
+            showAbcPoster(true);
+            setAbcStatus('Tap Play when you are ready');
+            const iframe = document.getElementById('abc-iframe');
+            if (iframe) iframe.src = 'about:blank';
             speak("Let's sing the ABC song!");
         }
         function playAbcSong() {
             const iframe = document.getElementById('abc-iframe');
             if (!iframe) return;
-            iframe.src = 'https://www.youtube.com/embed/ccEpTTZW34g?autoplay=1&rel=0&modestbranding=1&playsinline=1';
+            setAbcStatus('Loading song…');
+            showAbcPoster(true);
+            // Lazy-load embed only on Play (avoids dark empty iframe on open)
+            iframe.src = ABC_YT_EMBED + '&autoplay=1';
+            iframe.onload = () => {
+                setAbcStatus('Playing — sing along!');
+                showAbcPoster(false);
+            };
+            // If embed stays blocked/blank, poster help + Open YouTube remain obvious
+            scheduleNext(() => {
+                if (!document.getElementById('game-sensory-abcsong')?.classList.contains('active')) return;
+                if (iframe.getAttribute('src') && iframe.src.indexOf('about:blank') === -1) {
+                    setAbcStatus('Still dark? Use Open YouTube');
+                }
+            }, 4500);
             speak('Sing along!');
         }
         function stopAbcSong() {
             const iframe = document.getElementById('abc-iframe');
-            if (!iframe) return;
-            iframe.src = 'about:blank';
-            // restore embed without autoplay
-            scheduleNext(() => {
-                if (document.getElementById('game-sensory-abcsong')?.classList.contains('active')) {
-                    iframe.src = 'https://www.youtube.com/embed/ccEpTTZW34g?rel=0&modestbranding=1&playsinline=1';
-                }
-            }, 100);
+            if (iframe) {
+                iframe.onload = null;
+                iframe.src = 'about:blank';
+            }
+            showAbcPoster(true);
+            setAbcStatus('Stopped. Tap Play to sing again');
+        }
+        function openAbcYouTube() {
+            window.open(ABC_YT_WATCH, '_blank', 'noopener,noreferrer');
         }
         function fullscreenAbcSong() {
             const wrap = document.getElementById('abc-player-wrap');
             if (wrap && wrap.requestFullscreen) wrap.requestFullscreen();
             else if (wrap && wrap.webkitRequestFullscreen) wrap.webkitRequestFullscreen();
-            else window.open('https://www.youtube.com/watch?v=ccEpTTZW34g', '_blank');
+            else openAbcYouTube();
         }
 
 
@@ -1833,7 +2063,9 @@
             const options = document.getElementById('options-colors'); options.innerHTML = '';
             pool.forEach(c => {
                 const b = document.createElement('div'); 
-                b.className = 'color-blob'; 
+                b.className = 'color-blob';
+                b.setAttribute('role', 'button');
+                b.setAttribute('aria-label', c.name);
                 b.style.backgroundColor = c.hex;
                 b.title = c.name;
                 b.onclick = () => {
@@ -1842,7 +2074,7 @@
                         playSound('success');
                         praise();
                         triggerConfetti();
-                        trackTimeout(scheduleNext(() => initColorsBlobs(), 1500));
+                        scheduleNext(() => initColorsBlobs(), 1500);
                     } else {
                         playSound('fail');
                         speak('Try again');
@@ -1856,8 +2088,7 @@
         let currentFlashIdx = 0;
         function initColorsFlashcards() {
             currentFlashIdx = 0;
-            speak("These are the colors");
-            showFlashcard(false);
+            showFlashcard(true);
         }
         function stepFlashcard(dir) {
             currentFlashIdx = (currentFlashIdx + dir + COLORS.length) % COLORS.length;
@@ -1872,7 +2103,6 @@
             playSound(currentFlashIdx);
             if (card) lightUp(card);
             if (announce !== false) speak(c.name);
-            else speak(c.name);
         }
 
         // --- STAGE 2-3 GAME A: PUZZLE MATCHING ---
@@ -1888,46 +2118,62 @@
             const workspace = document.getElementById('workspace-shapes'); 
             workspace.innerHTML = '';
             workspace.style.position = 'relative';
-            
-            // Responsive layout: 4 slots across top, pieces bottom
-            const w = workspace.clientWidth || 600;
-            const slotSize = Math.min(90, Math.floor((w - 40) / 4));
-            const gap = Math.floor((w - slotSize * 4) / 5);
-            
+            const session = gameSession;
+
+            // Wait a frame so the active screen has real width (avoid 0→600 overflow on phones)
+            requestAnimationFrame(() => {
+                if (session !== gameSession) return;
+                layoutShapesMatch(workspace);
+            });
+        }
+
+        function layoutShapesMatch(workspace) {
+            if (!workspace) return;
+            workspace.innerHTML = '';
+            let w = workspace.clientWidth;
+            if (w < 80) w = Math.min(600, Math.max(280, window.innerWidth - 40));
+            const slotSize = Math.min(90, Math.max(56, Math.floor((w - 40) / 4)));
+            const gap = Math.max(6, Math.floor((w - slotSize * 4) / 5));
+            const snapDist = Math.max(48, Math.floor(slotSize * 0.7));
+            const pieceTop = Math.min(slotSize + 50, Math.max(120, (workspace.clientHeight || 320) - slotSize - 16));
+
             GEOMETRIES.forEach((g, idx) => {
                 const leftPos = gap + idx * (slotSize + gap);
-                
+
                 const slot = document.createElement('div');
-                slot.className = 'interactive-slot'; 
+                slot.className = 'interactive-slot';
                 slot.id = `slot-${g.id}`;
                 slot.dataset.shape = g.id;
+                slot.setAttribute('aria-label', g.id + ' home');
                 slot.style.width = slotSize + 'px';
                 slot.style.height = slotSize + 'px';
-                slot.style.left = leftPos + 'px'; 
-                slot.style.top = '20px';
-                // Light outline version of the shape color
+                slot.style.left = leftPos + 'px';
+                slot.style.top = '16px';
                 slot.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${g.svg.replace('COLOR', g.color + '33')}</svg>`;
                 workspace.appendChild(slot);
 
                 const item = document.createElement('div');
-                item.className = 'interactive-item'; 
+                item.className = 'interactive-item';
                 item.id = `piece-${g.id}`;
                 item.dataset.shape = g.id;
+                item.setAttribute('role', 'button');
+                item.setAttribute('aria-label', 'Drag ' + g.id);
                 item.style.width = slotSize + 'px';
                 item.style.height = slotSize + 'px';
-                item.style.left = leftPos + 'px'; 
-                item.style.top = (slotSize + 50) + 'px';
+                item.style.left = leftPos + 'px';
+                item.style.top = pieceTop + 'px';
                 item.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${g.svg.replace('COLOR', g.color)}</svg>`;
                 workspace.appendChild(item);
 
-                setupPointerDrag(item, slot, g.id);
+                setupPointerDrag(item, slot, g.id, snapDist);
             });
         }
 
-        function setupPointerDrag(element, targetSlot, shapeId) {
+        function setupPointerDrag(element, targetSlot, shapeId, snapDist) {
             let activeDrag = false;
             let startX, startY, initialLeft, initialTop;
             let originLeft, originTop;
+            const threshold = snapDist || 55;
 
             const onDown = (e) => {
                 if (element.style.pointerEvents === 'none') return;
@@ -1935,9 +2181,9 @@
                 activeDrag = true;
                 element.setPointerCapture(e.pointerId);
                 element.style.zIndex = '200';
-                startX = e.clientX; 
+                startX = e.clientX;
                 startY = e.clientY;
-                initialLeft = parseFloat(element.style.left) || 0; 
+                initialLeft = parseFloat(element.style.left) || 0;
                 initialTop = parseFloat(element.style.top) || 0;
                 originLeft = initialLeft;
                 originTop = initialTop;
@@ -1946,9 +2192,9 @@
             const onMove = (e) => {
                 if (!activeDrag) return;
                 e.preventDefault();
-                const dx = e.clientX - startX; 
+                const dx = e.clientX - startX;
                 const dy = e.clientY - startY;
-                element.style.left = (initialLeft + dx) + 'px'; 
+                element.style.left = (initialLeft + dx) + 'px';
                 element.style.top = (initialTop + dy) + 'px';
             };
 
@@ -1960,34 +2206,31 @@
 
                 const sRect = targetSlot.getBoundingClientRect();
                 const pRect = element.getBoundingClientRect();
-                // Use center-to-center distance for better snap feel
                 const sCx = sRect.left + sRect.width / 2;
                 const sCy = sRect.top + sRect.height / 2;
                 const pCx = pRect.left + pRect.width / 2;
                 const pCy = pRect.top + pRect.height / 2;
                 const distance = Math.hypot(sCx - pCx, sCy - pCy);
 
-                if (distance < 55) {
-                    // Snap perfectly
-                    element.style.left = targetSlot.style.left; 
+                if (distance < threshold) {
+                    element.style.left = targetSlot.style.left;
                     element.style.top = targetSlot.style.top;
                     element.style.pointerEvents = 'none';
                     element.classList.add('placed');
-                    // Fill the slot with the solid shape color
                     const shape = GEOMETRIES.find(g => g.id === shapeId);
                     if (shape) {
                         targetSlot.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${shape.svg.replace('COLOR', shape.color)}</svg>`;
                     }
                     playSound('success');
+                    praise();
 
-                    const placed = document.querySelectorAll('.interactive-item.placed');
-                    if (placed.length === 4) { 
-                        triggerConfetti(); 
-                        scheduleNext(() => initShapesMatch(), 2000); 
+                    const placed = document.querySelectorAll('#workspace-shapes .interactive-item.placed');
+                    if (placed.length === 4) {
+                        triggerConfetti();
+                        scheduleNext(() => initShapesMatch(), 2000);
                     }
                 } else {
-                    // Bounce back
-                    element.style.left = originLeft + 'px'; 
+                    element.style.left = originLeft + 'px';
                     element.style.top = originTop + 'px';
                     playSound('fail');
                 }
@@ -1997,6 +2240,7 @@
             element.addEventListener('pointermove', onMove);
             element.addEventListener('pointerup', onUp);
             element.addEventListener('pointercancel', onUp);
+            element.addEventListener('lostpointercapture', () => { if (activeDrag) onUp({ pointerId: -1 }); });
         }
 
         // --- STAGE 2-3 GAME B: SIZE SORTING ---
@@ -2199,12 +2443,23 @@
             lastLetterTarget = targetLetter;
             document.getElementById('prompt-pop').innerText = `Pop the letter ${targetLetter}`;
             speak(`Pop the letter ${targetLetter}`);
-            
-            const chamber = document.getElementById('chamber-bubbles'); 
+
+            const chamber = document.getElementById('chamber-bubbles');
             chamber.innerHTML = '';
-            const chamberW = chamber.clientWidth || 500;
+            const session = gameSession;
+            requestAnimationFrame(() => {
+                if (session !== gameSession) return;
+                fillEnglishBubbles(chamber, letters, targetLetter);
+            });
+        }
+
+        function fillEnglishBubbles(chamber, letters, targetLetter) {
+            if (!chamber) return;
+            chamber.innerHTML = '';
+            const chamberW = chamber.clientWidth || Math.min(500, window.innerWidth - 40);
             const chamberH = chamber.clientHeight || 280;
-            
+            const bubbleSize = Math.min(90, Math.max(70, Math.floor(Math.min(chamberW, chamberH) / 4.5)));
+
             // 2 targets + 4 distractors — non-overlapping positions so none hide behind others
             const targetCount = 2;
             const slots = [
@@ -2224,31 +2479,37 @@
                     b.innerText = distractor;
                 }
                 
-                const left = slots[i][0] * Math.max(chamberW - 90, 100);
-                const top  = slots[i][1] * Math.max(chamberH - 90, 80);
+                b.style.width = bubbleSize + 'px';
+                b.style.height = bubbleSize + 'px';
+                const left = slots[i][0] * Math.max(chamberW - bubbleSize, 100);
+                const top  = slots[i][1] * Math.max(chamberH - bubbleSize, 80);
                 b.style.left = left + 'px';
                 b.style.top = top + 'px';
                 b.style.animationDelay = (i * 0.2) + 's';
-                
+                b.setAttribute('role', 'button');
+                b.setAttribute('aria-label', 'Letter ' + b.innerText);
+
                 b.onclick = () => {
-                    if(b.innerText === targetLetter && b.style.transform !== 'scale(0)') {
+                    if (b.dataset.popped === '1') return;
+                    if (b.innerText === targetLetter) {
+                        b.dataset.popped = '1';
                         lightUp(b);
                         b.style.transform = 'scale(0)';
                         b.style.opacity = '0';
                         b.style.pointerEvents = 'none';
                         playSound('success');
                         praise();
-                        
+
                         scheduleNext(() => {
-                            const remainingTargets = Array.from(chamber.children).filter(el => 
-                                el.innerText === targetLetter && el.style.transform !== 'scale(0)'
+                            const remainingTargets = Array.from(chamber.children).filter(el =>
+                                el.innerText === targetLetter && el.dataset.popped !== '1'
                             );
-                            if(remainingTargets.length === 0) { 
-                                triggerConfetti(); 
-                                scheduleNext(() => initEnglishPop(), 1600); 
+                            if (remainingTargets.length === 0) {
+                                triggerConfetti();
+                                scheduleNext(() => initEnglishPop(), 1600);
                             }
                         }, 250);
-                    } else if (b.innerText !== targetLetter) {
+                    } else {
                         playSound('fail');
                         b.style.animation = 'none';
                         b.offsetHeight;
@@ -2262,12 +2523,16 @@
         // --- EXTRA COLOR GAMES ---
         function initColorsSay() {
             const c = COLORS[Math.floor(Math.random() * COLORS.length)];
+            const sayPrompt = document.querySelector('#game-colors-say .game-prompt');
+            if (sayPrompt) sayPrompt.innerText = `This is ${c.name} ${c.emoji}`;
             speak(`This color is ${c.name}`);
             const opts = document.getElementById('options-colors-say');
             if (!opts) return;
             opts.innerHTML = '';
             const blob = document.createElement('div');
             blob.className = 'color-blob';
+            blob.setAttribute('role', 'button');
+            blob.setAttribute('aria-label', c.name);
             blob.style.backgroundColor = c.hex;
             blob.style.width = '160px'; blob.style.height = '160px';
             blob.onclick = () => { lightUp(blob); speak(`Yes, ${c.name}`); playSound('success'); scheduleNext(() => initColorsSay(), 1500); };
@@ -2345,6 +2610,8 @@
             const shapes = ['circle', 'square', 'triangle', 'star'];
             const target = pickDifferent(shapes, lastShapeTarget);
             lastShapeTarget = target;
+            const prompt = document.getElementById('prompt-shapes-pop');
+            if (prompt) prompt.innerText = `Pop the ${target}s!`;
             speak(`Pop the ${target}`);
             const options = document.getElementById('options-shapes-pop');
             if (!options) return;
@@ -2386,13 +2653,19 @@
         }
 
         // --- EXTRA MATH GAMES ---
+        const NUMBER_WORDS = {
+            1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five',
+            6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten'
+        };
         function initMathTouch() {
             if (typeof mathTouchIdx !== 'number' || mathTouchIdx < 1 || mathTouchIdx > 10) mathTouchIdx = 1;
             const n = mathTouchIdx;
             lastNumberTarget = n;
-            speak(`Tap the number ${n}`);
+            const word = NUMBER_WORDS[n] || String(n);
+            // Short on-screen prompt; speak with word form (avoids odd TTS like “thumb 1”)
             const prompt = document.getElementById('prompt-math-touch');
-            if (prompt) prompt.innerText = `Tap the number ${n}`;
+            if (prompt) prompt.innerText = `Tap ${n}`;
+            speak(`Tap ${word}`);
             const answers = document.getElementById('answers-math-touch');
             if (!answers) return;
             answers.innerHTML = '';
@@ -2428,13 +2701,13 @@
                 const col = starColors[i % starColors.length];
                 display.innerHTML += `<svg class="count-item" viewBox="0 0 100 100"><polygon points="50,5 64,36 98,36 70,57 81,91 50,70 19,91 30,57 2,36 36,36" fill="${col}" stroke="#fff" stroke-width="3"/></svg>`;
             }
-            let i = 1;
             window._countSession = gameSession;
-            const countInterval = setInterval(() => {
-                if (gameSession === window._countSession && i <= count) { speak(String(i)); i++; }
-                else clearInterval(countInterval);
-            }, 700);
-            trackTimeout(countInterval);
+            const sayCount = (n) => {
+                if (gameSession !== window._countSession) return;
+                if (n > count) return;
+                speak(String(n), { onEnd: () => sayCount(n + 1) });
+            };
+            scheduleNext(() => sayCount(1), 400);
             const choices = new Set([count]);
             while (choices.size < 3) choices.add(Math.floor(Math.random()*5)+1);
             Array.from(choices).sort((a,b)=>a-b).forEach(num => {
@@ -2610,26 +2883,31 @@
             }
 
             setupPaintCanvas();
-            sizePaintCanvas();
             closePaintTools();
 
-            if (paintMode === 'paint') {
-                paintColor = '#E63946';
-                if (fab) fab.style.display = 'flex';
-                if (float) float.style.display = '';
-                if (hud) hud.style.display = 'none';
-                wipePaintCanvas(true);
-                speak('Finger paint. Open the tool button to pick colors and brushes!');
-            } else {
-                // Trace modes: black only, no brush panel
-                paintColor = '#111111';
-                paintBrush = 'normal';
-                if (fab) fab.style.display = 'none';
-                if (float) { float.classList.remove('open'); float.style.display = 'none'; }
-                if (hud) hud.style.display = 'flex';
-                showPaintGuide(true);
-            }
-            updatePaintProgress();
+            const session = gameSession;
+            const finishInit = () => {
+                if (session !== gameSession) return;
+                sizePaintCanvas();
+                if (paintMode === 'paint') {
+                    paintColor = '#E63946';
+                    if (fab) fab.style.display = 'flex';
+                    if (float) float.style.display = '';
+                    if (hud) hud.style.display = 'none';
+                    wipePaintCanvas(true);
+                    speak('Finger paint. Open the tool button to pick colors and brushes!');
+                } else {
+                    paintColor = '#111111';
+                    paintBrush = 'normal';
+                    if (fab) fab.style.display = 'none';
+                    if (float) { float.classList.remove('open'); float.style.display = 'none'; }
+                    if (hud) hud.style.display = 'flex';
+                    showPaintGuide(true);
+                }
+                updatePaintProgress();
+            };
+            // Two rAFs: screen becomes .active then layout settles (esp. mobile dvh)
+            requestAnimationFrame(() => requestAnimationFrame(finishInit));
         }
 
         function sizePaintCanvas() {
@@ -2637,8 +2915,9 @@
             const screen = document.getElementById('game-create-studio');
             if (!canvas || !screen) return;
             const rect = screen.getBoundingClientRect();
-            const w = Math.max(320, Math.floor(rect.width || window.innerWidth || 800));
-            const h = Math.max(320, Math.floor(rect.height || window.innerHeight * 0.7 || 500));
+            const w = Math.max(280, Math.floor(rect.width || window.innerWidth || 800));
+            const h = Math.max(280, Math.floor(rect.height || window.innerHeight * 0.7 || 500));
+            if (canvas.width === w && canvas.height === h) return;
             canvas.width = w;
             canvas.height = h;
         }
@@ -2970,25 +3249,59 @@
             return map[String(n)] || [[P(-0.5, 0), P(0.5, 0)]];
         }
 
-                function stickShapePaths(sh, cx, cy, s) {
+        function stickShapePaths(sh, cx, cy, s) {
+            // Dense outlines so hit-testing / progress match letter & number trace
             if (sh === 'circle') {
-                return [ arcPts(cx, cy, s, s, 0, Math.PI * 2, 40) ];
+                return [ arcPts(cx, cy, s, s, -Math.PI / 2, Math.PI * 1.5, 64) ];
             }
             if (sh === 'square') {
-                const r = 8; // slight visual round via extra points not needed; lineJoin is round
-                return [[[cx-s, cy-s], [cx+s, cy-s], [cx+s, cy+s], [cx-s, cy+s], [cx-s, cy-s]]];
+                const corners = [[cx-s, cy-s], [cx+s, cy-s], [cx+s, cy+s], [cx-s, cy+s], [cx-s, cy-s]];
+                const pts = [];
+                for (let i = 0; i < corners.length - 1; i++) {
+                    const [x0, y0] = corners[i], [x1, y1] = corners[i + 1];
+                    for (let t = 0; t <= 16; t++) {
+                        const u = t / 16;
+                        pts.push([x0 + (x1 - x0) * u, y0 + (y1 - y0) * u]);
+                    }
+                }
+                return [pts];
             }
             if (sh === 'triangle') {
-                return [[[cx, cy-s], [cx+s*1.08, cy+s*0.92], [cx-s*1.08, cy+s*0.92], [cx, cy-s]]];
+                const corners = [[cx, cy-s], [cx+s*1.08, cy+s*0.92], [cx-s*1.08, cy+s*0.92], [cx, cy-s]];
+                const pts = [];
+                for (let i = 0; i < corners.length - 1; i++) {
+                    const [x0, y0] = corners[i], [x1, y1] = corners[i + 1];
+                    for (let t = 0; t <= 18; t++) {
+                        const u = t / 18;
+                        pts.push([x0 + (x1 - x0) * u, y0 + (y1 - y0) * u]);
+                    }
+                }
+                return [pts];
             }
+            // star
             const pts = [];
             for (let i = 0; i < 5; i++) {
-                const a = -Math.PI/2 + i * 2 * Math.PI / 5;
+                const a = -Math.PI / 2 + i * 2 * Math.PI / 5;
                 const a2 = a + Math.PI / 5;
-                pts.push([cx + Math.cos(a) * s, cy + Math.sin(a) * s]);
-                pts.push([cx + Math.cos(a2) * s * 0.40, cy + Math.sin(a2) * s * 0.40]);
+                const outer = [cx + Math.cos(a) * s, cy + Math.sin(a) * s];
+                const inner = [cx + Math.cos(a2) * s * 0.40, cy + Math.sin(a2) * s * 0.40];
+                const prev = pts.length ? pts[pts.length - 1] : null;
+                const from = prev || outer;
+                // sample edge to outer tip then to inner
+                if (prev) {
+                    for (let t = 1; t <= 8; t++) {
+                        const u = t / 8;
+                        pts.push([from[0] + (outer[0] - from[0]) * u, from[1] + (outer[1] - from[1]) * u]);
+                    }
+                } else {
+                    pts.push(outer);
+                }
+                for (let t = 1; t <= 8; t++) {
+                    const u = t / 8;
+                    pts.push([outer[0] + (inner[0] - outer[0]) * u, outer[1] + (inner[1] - outer[1]) * u]);
+                }
             }
-            pts.push(pts[0]);
+            if (pts.length) pts.push(pts[0]);
             return [pts];
         }
 
@@ -3020,7 +3333,7 @@
         function buildGuideFromStrokes(strokes) {
             const pts = [];
             const ranges = [];
-            const spacing = 7;
+            const spacing = paintMode === 'shapes' ? 5 : 7;
             for (const stroke of strokes) {
                 if (!stroke || stroke.length < 2) continue;
                 const start = pts.length;
@@ -3102,7 +3415,7 @@
             return label;
         }
 
-                function showPaintGuide(announce) {
+        function showPaintGuide(announce) {
             wipePaintCanvas(true);
             const label = drawPaintGuide();
             const prompt = document.getElementById('prompt-paint');
@@ -3187,94 +3500,140 @@
             const canvas = document.getElementById('paint-canvas');
             if (!canvas || canvas._paintReady) return;
             canvas._paintReady = true;
-            const ctx = canvas.getContext('2d');
 
             function pos(e) {
                 const r = canvas.getBoundingClientRect();
                 const scaleX = canvas.width / Math.max(1, r.width);
                 const scaleY = canvas.height / Math.max(1, r.height);
-                const src = e.touches ? e.touches[0] : e;
+                const src = (e.touches && e.touches[0])
+                    || (e.changedTouches && e.changedTouches[0])
+                    || e;
                 return { x: (src.clientX - r.left) * scaleX, y: (src.clientY - r.top) * scaleY };
+            }
+
+            function brushSize() {
+                if (paintMode === 'paint') return BRUSH_SIZES[paintBrush] || 14;
+                // Shapes need a friendlier hit radius than skinny letter strokes
+                const base = Math.max(12, Math.floor(Math.min(canvas.width, canvas.height) / 40));
+                return paintMode === 'shapes' ? Math.max(16, base + 4) : base;
+            }
+
+            function hitRadius(size) {
+                return paintMode === 'shapes' ? size * 1.55 : size * 1.25;
+            }
+
+            function strokeStyleForMode(ctx, size) {
+                ctx.setLineDash([]);
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.globalAlpha = 1;
+                if (paintMode === 'paint') {
+                    if (paintBrush === 'fill') return false;
+                    ctx.strokeStyle = paintBrush === 'eraser' ? '#ffffff' : paintColor;
+                    ctx.fillStyle = ctx.strokeStyle;
+                } else {
+                    ctx.strokeStyle = '#111111';
+                    ctx.fillStyle = '#111111';
+                }
+                ctx.lineWidth = size;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                return true;
+            }
+
+            function ensureGuideReady() {
+                if (paintMode === 'paint') return;
+                if (!paintGuidePoints.length) {
+                    // Guide missing (resize race) — rebuild without speaking
+                    showPaintGuide(false);
+                }
             }
 
             function start(e) {
                 e.preventDefault();
+                if (typeof e.button === 'number' && e.button !== 0) return;
                 const p = pos(e);
                 if (paintMode === 'paint' && paintBrush === 'fill') {
                     pushPaintUndo();
                     floodFill(p.x, p.y, paintColor);
                     return;
                 }
+                ensureGuideReady();
                 paintDrawing = true;
                 paintStrokeInk = 0;
                 pushPaintUndo();
                 paintLastX = p.x; paintLastY = p.y;
-                const size = paintMode === 'paint' ? (BRUSH_SIZES[paintBrush] || 14) : Math.max(10, Math.floor(Math.min(canvas.width, canvas.height) / 45));
+                const ctx = canvas.getContext('2d');
+                const size = brushSize();
+                if (!strokeStyleForMode(ctx, size)) return;
+                // Visible ink on press (not only on move) — fixes “drag with no trace”
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, size / 2, 0, Math.PI * 2);
+                ctx.fill();
                 if (paintMode !== 'paint') {
-                    markGuideHits(p.x, p.y, size * 1.15);
+                    markGuideHits(p.x, p.y, hitRadius(size));
                 }
+                try { if (e.pointerId != null) canvas.setPointerCapture(e.pointerId); } catch (_) {}
             }
 
             function move(e) {
                 if (!paintDrawing || paintCompleting) return;
                 e.preventDefault();
                 const p = pos(e);
-                const size = paintMode === 'paint'
-                    ? (BRUSH_SIZES[paintBrush] || 14)
-                    : Math.max(10, Math.floor(Math.min(canvas.width, canvas.height) / 45));
-                if (paintMode === 'paint') {
-                    if (paintBrush === 'fill') return;
-                    ctx.strokeStyle = paintBrush === 'eraser' ? '#ffffff' : paintColor;
-                    ctx.lineWidth = size;
-                } else {
-                    // Trace: always black, fixed friendly width
-                    ctx.strokeStyle = '#111111';
-                    ctx.lineWidth = size;
-                }
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
+                const ctx = canvas.getContext('2d');
+                const size = brushSize();
+                if (!strokeStyleForMode(ctx, size)) return;
                 ctx.beginPath();
                 ctx.moveTo(paintLastX, paintLastY);
                 ctx.lineTo(p.x, p.y);
                 ctx.stroke();
-                // Sample along segment for hit testing
                 if (paintMode !== 'paint') {
                     const dist = Math.hypot(p.x - paintLastX, p.y - paintLastY);
                     paintStrokeInk += dist;
-                    const steps = Math.max(1, Math.floor(dist / 4));
+                    const steps = Math.max(1, Math.floor(dist / 3));
                     for (let s = 0; s <= steps; s++) {
                         const t = s / steps;
                         const x = paintLastX + (p.x - paintLastX) * t;
                         const y = paintLastY + (p.y - paintLastY) * t;
-                        markGuideHits(x, y, size * 1.15);
+                        markGuideHits(x, y, hitRadius(size));
                     }
                 }
                 paintLastX = p.x; paintLastY = p.y;
             }
 
-            function end() {
+            function end(e) {
                 if (!paintDrawing) return;
                 paintDrawing = false;
+                try { if (e && e.pointerId != null) canvas.releasePointerCapture(e.pointerId); } catch (_) {}
                 if (paintMode === 'paint' || paintCompleting) return;
                 const cov = traceCoverage();
-                // Only auto-complete when the path is essentially finished
-                if (cov >= 0.93 && allStrokesTraced()) {
+                if (cov >= 0.90 && allStrokesTraced()) {
                     completePaintGuide();
                     return;
                 }
-                // Drew a long stroke mostly off the path → auto reset
-                if (paintStrokeInk > 140 && cov < 0.18) {
+                // Large shapes: allow longer exploring strokes before reset
+                const inkLimit = paintMode === 'shapes' ? 280 : 140;
+                const covFail = paintMode === 'shapes' ? 0.12 : 0.18;
+                if (paintStrokeInk > inkLimit && cov < covFail) {
                     failTraceAndReset();
                 }
             }
 
-            canvas.addEventListener('mousedown', start);
-            canvas.addEventListener('mousemove', move);
-            canvas.addEventListener('mouseup', end);
-            canvas.addEventListener('mouseleave', end);
-            canvas.addEventListener('touchstart', start, { passive: false });
-            canvas.addEventListener('touchmove', move, { passive: false });
-            canvas.addEventListener('touchend', end);
+            if (window.PointerEvent) {
+                canvas.addEventListener('pointerdown', start);
+                canvas.addEventListener('pointermove', move);
+                canvas.addEventListener('pointerup', end);
+                canvas.addEventListener('pointercancel', end);
+                canvas.addEventListener('lostpointercapture', end);
+            } else {
+                canvas.addEventListener('mousedown', start);
+                canvas.addEventListener('mousemove', move);
+                canvas.addEventListener('mouseup', end);
+                canvas.addEventListener('mouseleave', end);
+                canvas.addEventListener('touchstart', start, { passive: false });
+                canvas.addEventListener('touchmove', move, { passive: false });
+                canvas.addEventListener('touchend', end);
+                canvas.addEventListener('touchcancel', end);
+            }
 
             window.addEventListener('resize', () => {
                 if (!document.getElementById('game-create-studio')?.classList.contains('active')) return;
