@@ -41,7 +41,3 @@ Needs internet. If the in-game player is blank, use Open YouTube.
 ## Privacy
 
 No accounts. No tracking scripts. Photos from Capture a moment stay on the device.
-
-## Updates
-
-After a new deploy, refresh the site or reopen the home-screen icon. This release uses cache v51.
