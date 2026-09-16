@@ -55,6 +55,7 @@
             color: var(--text-dark);
             min-height: 100vh;
             min-height: 100dvh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -62,26 +63,31 @@
             padding-left: env(safe-area-inset-left, 0);
             padding-right: env(safe-area-inset-right, 0);
             padding-bottom: env(safe-area-inset-bottom, 0);
+            overflow: hidden;
         }
 
-        /* --- MAGIC HEADER --- */
+        /* --- MAGIC HEADER (sticky chrome; games start below) --- */
         header {
             width: 100%;
-            padding: 18px 20px;
-            padding-top: calc(18px + env(safe-area-inset-top, 0px));
+            padding: 12px 14px 10px;
+            padding-top: calc(12px + env(safe-area-inset-top, 0px));
             text-align: center;
-            background: rgba(255, 255, 255, 0.92);
+            background: rgba(255, 255, 255, 0.96);
             backdrop-filter: blur(8px);
             box-shadow: 0 6px 24px rgba(43, 45, 66, 0.08);
             border-bottom: 5px solid var(--stella-gold);
-            z-index: 10;
+            z-index: 40;
+            position: sticky;
+            top: 0;
+            flex-shrink: 0;
+            overflow: visible;
         }
 
         h1 {
             font-size: 2.4rem;
             color: var(--stella-dark-pink);
             text-shadow: 2px 2px 0px var(--stella-gold), 0 0 12px rgba(255, 195, 0, 0.3);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             animation: gentlePulse 2.5s infinite alternate;
             letter-spacing: 0.5px;
         }
@@ -95,7 +101,67 @@
             font-size: 1.05rem;
             color: var(--text-muted);
             font-weight: 700;
+            margin-bottom: 8px;
         }
+
+        /* Row under tagline: mute | Back | Home | Tools | Save/Print */
+        .games-chrome {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 2px 0 4px;
+        }
+        .games-chrome .chrome-btn,
+        .games-chrome .voice-mute-btn,
+        .games-chrome .chrome-tools-btn,
+        .games-chrome .chrome-save-btn {
+            margin: 0;
+            flex: 0 0 auto;
+            min-height: 44px;
+            min-width: 44px;
+        }
+        .games-chrome .back-btn.chrome-btn {
+            margin-bottom: 0;
+            padding: 10px 18px;
+            font-size: 1rem;
+            min-height: 44px;
+        }
+        .chrome-tools-btn,
+        .chrome-save-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: linear-gradient(to bottom, #FFE600, var(--stella-gold));
+            border: 3px solid #D4B200;
+            color: #5A4A00;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-family: var(--font-main);
+            font-weight: 800;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #D4B200;
+        }
+        .chrome-save-btn {
+            background: linear-gradient(to bottom, #B8F2E6, var(--color-teal));
+            border-color: #0B7A5A;
+            color: #0B3D2E;
+            box-shadow: 0 3px 0 #0B7A5A;
+        }
+        .chrome-tools-btn:active,
+        .chrome-save-btn:active { transform: translateY(2px); box-shadow: none; }
+        .chrome-tools-btn[hidden],
+        .chrome-save-btn[hidden],
+        .chrome-btn[hidden] { display: none !important; }
+
+        /* In-screen Back buttons retired — use header chrome */
+        .screen > .back-btn { display: none !important; }
 
         /* --- CONTAINER --- */
         .container {
@@ -103,12 +169,15 @@
             max-width: 950px;
             padding: 6px 14px 20px;
             flex: 1;
+            min-height: 0;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
             align-items: stretch;
             position: relative;
             overflow-x: clip;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* --- SCREEN ANIMATIONS --- */
@@ -346,19 +415,47 @@
         }
         .farm-animal:active { transform: scale(0.94); }
 
-        /* Correct answer highlight */
-        .lit-up {
+        /* Correct / wrong tap feedback (strong visual, not TTS-only) */
+        .lit-up, .tap-correct {
             outline: 6px solid #FFE600 !important;
-            box-shadow: 0 0 0 8px rgba(255, 230, 0, 0.45), 0 0 36px rgba(255, 195, 0, 0.95) !important;
-            transform: scale(1.1) !important;
-            transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+            box-shadow: 0 0 0 10px rgba(255, 230, 0, 0.5), 0 0 40px rgba(255, 195, 0, 1) !important;
+            transform: scale(1.14) !important;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease !important;
             z-index: 5;
-            animation: blingPulse 0.45s ease-out;
+            animation: blingPulse 0.5s ease-out;
+            filter: brightness(1.12) saturate(1.15);
         }
         @keyframes blingPulse {
-            0% { filter: brightness(1); }
-            40% { filter: brightness(1.35); }
-            100% { filter: brightness(1); }
+            0% { filter: brightness(1); transform: scale(1); }
+            35% { filter: brightness(1.45); transform: scale(1.18); }
+            100% { filter: brightness(1.12); transform: scale(1.14); }
+        }
+        .tap-wrong {
+            outline: 5px solid #E63946 !important;
+            box-shadow: 0 0 0 8px rgba(230, 57, 70, 0.35) !important;
+            animation: tapShake 0.45s ease-out;
+            filter: brightness(0.72) saturate(0.7);
+            opacity: 0.78;
+            z-index: 4;
+        }
+        @keyframes tapShake {
+            0%, 100% { transform: translateX(0) scale(1); }
+            20% { transform: translateX(-10px) scale(0.94); }
+            40% { transform: translateX(10px) scale(0.94); }
+            60% { transform: translateX(-7px) scale(0.96); }
+            80% { transform: translateX(7px) scale(0.96); }
+        }
+        .color-blob.selected, .color-blob.match-pick {
+            outline: 7px solid #FFE600 !important;
+            box-shadow: 0 0 0 10px rgba(255, 230, 0, 0.45), 0 12px 28px rgba(255, 195, 0, 0.55) !important;
+            transform: scale(1.12);
+            z-index: 3;
+            position: relative;
+        }
+        .color-blob.match-pair {
+            outline: 7px solid #2A9D8F !important;
+            box-shadow: 0 0 0 10px rgba(42, 157, 143, 0.4), 0 0 32px rgba(42, 157, 143, 0.7) !important;
+            transform: scale(1.1);
         }
         .farm-animal .emoji { font-size: 2.8rem; line-height: 1; }
         .farm-animal .label { font-size: 1rem; font-weight: bold; color: var(--text-dark); }
@@ -481,8 +578,10 @@
             background: #FFF9FA;
             border-radius: 24px;
             border: 3px dashed #FFE4E1;
-            overflow: hidden;
+            overflow: visible;
             touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
         .interactive-slot {
             position: absolute;
@@ -495,6 +594,21 @@
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
+            z-index: 1;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s, background 0.2s;
+            pointer-events: none;
+        }
+        .interactive-slot.slot-ready {
+            border-color: #FFE600;
+            box-shadow: 0 0 0 4px rgba(255, 230, 0, 0.35);
+        }
+        .interactive-slot.slot-filled {
+            border-style: solid;
+            border-color: #2A9D8F;
+            background: #E8FFF8;
+            box-shadow: 0 0 0 6px rgba(42, 157, 143, 0.35), 0 0 22px rgba(42, 157, 143, 0.55);
+            transform: scale(1.06);
+            animation: blingPulse 0.45s ease-out;
         }
         .interactive-item {
             position: absolute;
@@ -508,11 +622,27 @@
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            will-change: left, top, transform;
+            transition: transform 0.15s ease, filter 0.15s ease, opacity 0.25s ease;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.18));
         }
+        .interactive-item > * { pointer-events: none; }
         .interactive-item:active { cursor: grabbing; }
+        .interactive-item.dragging {
+            cursor: grabbing;
+            z-index: 300 !important;
+            transform: scale(1.18);
+            filter: drop-shadow(0 10px 18px rgba(0,0,0,0.28)) brightness(1.08);
+            transition: none;
+            opacity: 0.97;
+        }
         .interactive-item.placed {
             cursor: default;
-            filter: drop-shadow(0 0 6px var(--stella-gold));
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.4);
+            filter: none;
         }
 
         /* --- STAGE 3-4: MATH COMPONENT --- */
@@ -659,19 +789,26 @@
         }
 
 
-        /* --- CREATE / PAINT FULL SCREEN --- */
+        /* --- CREATE / PAINT — fills space under sticky header --- */
         .paint-screen.screen.active {
             position: relative;
             width: 100%;
             max-width: none;
-            /* Header ~72–110px depending on safe-area; keep canvas inside viewport */
-            height: calc(100dvh - 7.5rem - env(safe-area-inset-top, 0px));
-            max-height: calc(100dvh - 5.5rem - env(safe-area-inset-top, 0px));
+            flex: 1 1 auto;
+            height: 100%;
             min-height: 280px;
             padding: 0 !important;
             margin: 0 !important;
             gap: 0 !important;
             overflow: hidden;
+        }
+        body.paint-active .container {
+            padding: 0;
+            max-width: none;
+            overflow: hidden;
+        }
+        body.paint-active #game-create-studio.screen.active {
+            display: flex;
         }
         #paint-canvas {
             position: absolute;
@@ -687,39 +824,41 @@
             display: block;
             z-index: 1;
         }
-        .paint-fab {
-            position: absolute;
-            right: 14px;
-            bottom: 14px;
-            z-index: 20;
-            width: 58px;
-            height: 58px;
-            border-radius: 50%;
-            border: 4px solid white;
-            background: linear-gradient(to bottom, #FFE600, var(--stella-gold));
-            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-            font-size: 1.5rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        /* Tools panel drops under header (not a bottom FAB) */
         .paint-float {
             position: absolute;
-            right: 14px;
-            bottom: 80px;
-            z-index: 20;
-            width: min(320px, calc(100vw - 28px));
-            background: rgba(255,255,255,0.97);
+            left: 50%;
+            transform: translateX(-50%);
+            top: calc(100% + 4px);
+            z-index: 50;
+            width: min(400px, calc(100vw - 16px));
+            background: rgba(255,255,255,0.98);
             border: 4px solid #FFE4E1;
             border-radius: 22px;
             padding: 12px;
             box-shadow: 0 12px 28px rgba(0,0,0,0.15);
             display: none;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
+            text-align: left;
+            max-height: min(78vh, 560px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .paint-float.open { display: flex; }
+        .paint-float .paint-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .paint-float .paint-section-label {
+            font-family: var(--font-main);
+            font-weight: 800;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+            padding: 0 4px;
+        }
         .paint-float .paint-toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -736,72 +875,102 @@
             cursor: pointer;
             font-size: 0.9rem;
             color: var(--text-dark);
+            min-height: 44px;
+            min-width: 44px;
         }
         .paint-mode-btn.active {
             background: var(--stella-gold);
             border-color: #D4B200;
         }
+        .paint-mode-btn.stamp-btn {
+            font-size: 1.35rem;
+            line-height: 1;
+            padding: 6px 10px;
+        }
         .paint-colors {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             flex-wrap: wrap;
             justify-content: center;
+            align-items: center;
         }
         .paint-swatch {
-            width: 34px; height: 34px; border-radius: 50%;
+            width: 44px; height: 44px; border-radius: 50%;
             border: 3px solid white; box-shadow: 0 2px 0 rgba(0,0,0,0.15);
             cursor: pointer;
+            min-width: 44px;
+            min-height: 44px;
+            flex-shrink: 0;
         }
         .paint-swatch.active { outline: 3px solid var(--text-dark); }
-        .paint-always-nav {
-            position: absolute;
-            left: max(10px, env(safe-area-inset-left, 0px));
-            top: max(10px, env(safe-area-inset-top, 0px));
-            z-index: 25;
-            display: flex;
-            gap: 8px;
+        .paint-color-custom {
+            display: inline-flex;
             align-items: center;
-            pointer-events: auto;
-            flex-wrap: wrap;
-            max-width: calc(100% - 20px);
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            min-height: 48px;
+            border-radius: 50%;
+            border: 3px dashed #D4B200;
+            background: conic-gradient(from 0deg, #E63946, #FCBF49, #2A9D8F, #457B9D, #9B5DE5, #E63946);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
         }
-        .paint-always-nav .back-btn { margin: 0; }
-        .paint-trace-hud {
+        .paint-color-custom input[type="color"] {
             position: absolute;
-            left: 10px;
-            right: 10px;
-            top: 58px;
-            z-index: 15;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            border: none;
+            padding: 0;
+        }
+        .paint-color-custom::after {
+            content: '🎨';
+            font-size: 1.2rem;
+            pointer-events: none;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+        }
+        /* Trace controls: slim bar in header under chrome */
+        .paint-trace-hud {
             display: none;
             flex-wrap: wrap;
             gap: 8px;
             align-items: center;
-            justify-content: space-between;
-            pointer-events: none;
-            max-width: 100%;
+            justify-content: center;
+            width: 100%;
+            max-width: 950px;
+            margin: 4px auto 0;
+            padding: 4px 0 2px;
+            pointer-events: auto;
         }
+        .paint-trace-hud.is-visible { display: flex; }
         .paint-trace-hud .hud-left,
         .paint-trace-hud .hud-right {
-            pointer-events: auto;
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             align-items: center;
+            justify-content: center;
         }
         .paint-trace-hud .game-prompt {
-            background: rgba(255,255,255,0.92);
+            background: rgba(255,248,240,0.95);
             border-radius: 16px;
-            padding: 8px 14px;
+            padding: 6px 12px;
             margin: 0;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            font-size: 1.05rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
         .paint-progress {
             height: 10px;
             background: #eee;
             border-radius: 8px;
             overflow: hidden;
-            width: 120px;
+            width: 100px;
             border: 2px solid #fff;
         }
         .paint-progress > i {
@@ -810,6 +979,45 @@
             width: 0%;
             background: var(--color-teal);
             transition: width 0.15s;
+        }
+
+        /* Print: artwork only */
+        @media print {
+            html, body {
+                background: #fff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            body * { visibility: hidden !important; }
+            .container,
+            #game-create-studio,
+            #paint-canvas {
+                visibility: visible !important;
+                display: block !important;
+                position: static !important;
+                width: 100% !important;
+                height: auto !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                background: #fff !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+            #paint-canvas {
+                max-height: 100vh !important;
+                object-fit: contain;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            header, .paint-float, .games-chrome, .paint-trace-hud,
+            #install-banner, #confetti-canvas, .screen:not(.paint-screen) {
+                display: none !important;
+                visibility: hidden !important;
+            }
         }
 
         .camera-btn-main {
@@ -843,13 +1051,6 @@
             .hub-scroll-hint { display: block; }
         }
 
-        .header-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px 14px;
-            flex-wrap: wrap;
-        }
         .voice-mute-btn {
             display: inline-flex;
             align-items: center;
@@ -918,9 +1119,9 @@
 
         /* Laptop ~1280×800: fit hub with less fold-scroll */
         @media (min-width: 900px) and (max-height: 860px) {
-            header { padding: 10px 16px; padding-top: calc(10px + env(safe-area-inset-top, 0px)); }
+            header { padding: 8px 14px 8px; padding-top: calc(8px + env(safe-area-inset-top, 0px)); }
             h1 { font-size: 1.85rem; margin-bottom: 0; }
-            .subtitle { font-size: 0.9rem; }
+            .subtitle { font-size: 0.9rem; margin-bottom: 6px; }
             .roadmap-grid { gap: 12px; }
             .milestone-card { padding: 12px 12px 12px; border-radius: 20px; }
             .milestone-card h3 { font-size: 1.2rem; }
@@ -956,11 +1157,17 @@
             .mobile-element { width: 86px; height: 86px; }
             .drag-workspace { height: 340px; }
             .farm-animal { min-width: 88px; min-height: 110px; }
-            .paint-swatch { width: 40px; height: 40px; }
+            .paint-swatch { width: 48px; height: 48px; }
             .abc-bubble { width: 84px; height: 84px; font-size: 2rem; }
             .play-btn { padding: 14px 28px; font-size: 1.2rem; min-height: 54px; }
             .back-btn { padding: 12px 22px; font-size: 1.1rem; min-height: 50px; }
+            .games-chrome .back-btn.chrome-btn { padding: 10px 14px; font-size: 0.95rem; min-height: 44px; }
+            .chrome-tools-btn, .chrome-save-btn { padding: 8px 12px; font-size: 0.88rem; }
+            .voice-mute-btn { padding: 8px 12px; font-size: 0.88rem; }
             .container { padding: 4px 10px 16px; }
+            header { padding: 8px 10px 8px; padding-top: calc(8px + env(safe-area-inset-top, 0px)); }
+            h1 { font-size: 1.55rem; }
+            .subtitle { font-size: 0.88rem; margin-bottom: 6px; }
         }
 
         @media (max-width: 380px) {
@@ -974,11 +1181,75 @@
 <body>
 
     <header>
-        <div class="header-row">
-            <h1>🌸 Stella's Game 🌟</h1>
-            <button type="button" id="voice-mute-btn" class="voice-mute-btn" onclick="toggleVoiceMute()" aria-pressed="false" title="Turn the talking voice off. Farm sounds and music still play.">🔊 Voice on</button>
-        </div>
+        <h1>🌸 Stella's Game 🌟</h1>
         <div class="subtitle">A gentle learning game for little ones</div>
+        <nav class="games-chrome" id="games-chrome" aria-label="Game controls">
+            <button type="button" id="voice-mute-btn" class="voice-mute-btn" onclick="toggleVoiceMute()" aria-pressed="false" title="Turn the talking voice off. Farm sounds and music still play.">🔊 Voice on</button>
+            <button type="button" id="chrome-back" class="back-btn chrome-btn" hidden onclick="chromeGoBack()">← Back</button>
+            <button type="button" id="chrome-home" class="back-btn chrome-btn" hidden onclick="chromeGoHome()">Home</button>
+            <button type="button" id="paint-fab" class="chrome-tools-btn" hidden onclick="togglePaintTools()" title="Colors, brushes, stamps and shapes">🛠️ Tools</button>
+            <button type="button" id="paint-save-btn" class="chrome-save-btn" hidden onclick="saveOrPrintPaint()" title="Save your picture or print it">💾 Save / Print</button>
+        </nav>
+        <!-- Trace HUD lives in header so it never covers the canvas badly -->
+        <div class="paint-trace-hud" id="paint-trace-hud" aria-live="polite">
+            <div class="hud-left">
+                <div class="game-prompt" id="prompt-paint">Trace</div>
+                <div class="paint-progress" title="Trace progress"><i id="paint-progress-bar"></i></div>
+            </div>
+            <div class="hud-right">
+                <button type="button" class="paint-mode-btn" onclick="prevPaintGuide()">◀ Prev</button>
+                <button type="button" class="paint-mode-btn" onclick="skipPaintGuide()">Next ▶</button>
+                <button type="button" class="play-btn" style="padding:10px 18px;font-size:1rem;min-height:44px;" onclick="completePaintGuide()">Done ✓</button>
+            </div>
+        </div>
+        <!-- Free-paint tools panel (anchored under header chrome) -->
+        <div class="paint-float" id="paint-float">
+            <div class="paint-toolbar">
+                <button type="button" onclick="togglePaintTools()">Close tools</button>
+                <button type="button" onclick="undoPaint()">Undo</button>
+                <button type="button" onclick="clearPaint()">Clear</button>
+            </div>
+            <div class="paint-section">
+                <div class="paint-section-label">🎨 Colors</div>
+                <div class="paint-colors" id="paint-colors"></div>
+            </div>
+            <div class="paint-section">
+                <div class="paint-section-label">🖌️ Brushes</div>
+                <div class="paint-toolbar" id="paint-brushes">
+                    <button type="button" class="paint-mode-btn brush-btn" data-brush="thin" onclick="setPaintBrush('thin')">Thin</button>
+                    <button type="button" class="paint-mode-btn brush-btn active" data-brush="normal" onclick="setPaintBrush('normal')">Normal</button>
+                    <button type="button" class="paint-mode-btn brush-btn" data-brush="thick" onclick="setPaintBrush('thick')">Thick</button>
+                    <button type="button" class="paint-mode-btn brush-btn" data-brush="crayon" onclick="setPaintBrush('crayon')">Crayon</button>
+                    <button type="button" class="paint-mode-btn brush-btn" data-brush="marker" onclick="setPaintBrush('marker')">Marker</button>
+                    <button type="button" class="paint-mode-btn brush-btn" data-brush="spray" onclick="setPaintBrush('spray')">Spray</button>
+                    <button type="button" class="paint-mode-btn brush-btn" data-brush="eraser" onclick="setPaintBrush('eraser')">Eraser</button>
+                    <button type="button" class="paint-mode-btn brush-btn" data-brush="fill" onclick="setPaintBrush('fill')">Fill</button>
+                </div>
+            </div>
+            <div class="paint-section">
+                <div class="paint-section-label">⭐ Stamps</div>
+                <div class="paint-toolbar" id="paint-stamps">
+                    <button type="button" class="paint-mode-btn brush-btn stamp-btn" data-brush="stamp-star" onclick="setPaintBrush('stamp-star')" title="Star">⭐</button>
+                    <button type="button" class="paint-mode-btn brush-btn stamp-btn" data-brush="stamp-heart" onclick="setPaintBrush('stamp-heart')" title="Heart">❤️</button>
+                    <button type="button" class="paint-mode-btn brush-btn stamp-btn" data-brush="stamp-smiley" onclick="setPaintBrush('stamp-smiley')" title="Smiley">😊</button>
+                    <button type="button" class="paint-mode-btn brush-btn stamp-btn" data-brush="stamp-flower" onclick="setPaintBrush('stamp-flower')" title="Flower">🌸</button>
+                    <button type="button" class="paint-mode-btn brush-btn stamp-btn" data-brush="stamp-sun" onclick="setPaintBrush('stamp-sun')" title="Sun">☀️</button>
+                    <button type="button" class="paint-mode-btn brush-btn stamp-btn" data-brush="stamp-rainbow" onclick="setPaintBrush('stamp-rainbow')" title="Rainbow">🌈</button>
+                    <button type="button" class="paint-mode-btn brush-btn stamp-btn" data-brush="stamp-cat" onclick="setPaintBrush('stamp-cat')" title="Cat">🐱</button>
+                    <button type="button" class="paint-mode-btn brush-btn stamp-btn" data-brush="stamp-dog" onclick="setPaintBrush('stamp-dog')" title="Dog">🐶</button>
+                    <button type="button" class="paint-mode-btn brush-btn stamp-btn" data-brush="stamp-car" onclick="setPaintBrush('stamp-car')" title="Car">🚗</button>
+                    <button type="button" class="paint-mode-btn brush-btn stamp-btn" data-brush="stamp-tree" onclick="setPaintBrush('stamp-tree')" title="Tree">🌳</button>
+                </div>
+            </div>
+            <div class="paint-section">
+                <div class="paint-section-label">⬛ Shapes</div>
+                <div class="paint-toolbar" id="paint-shapes">
+                    <button type="button" class="paint-mode-btn brush-btn" data-brush="shape-line" onclick="setPaintBrush('shape-line')">Line</button>
+                    <button type="button" class="paint-mode-btn brush-btn" data-brush="shape-rect" onclick="setPaintBrush('shape-rect')">Rectangle</button>
+                    <button type="button" class="paint-mode-btn brush-btn" data-brush="shape-circle" onclick="setPaintBrush('shape-circle')">Circle</button>
+                </div>
+            </div>
+        </div>
     </header>
 
     <div class="container">
@@ -1098,8 +1369,9 @@
                     <div id="abc-poster" class="abc-poster" role="img" aria-label="ABC Song video placeholder">
                         <div class="abc-poster-emoji">🔤🎵</div>
                         <div class="abc-poster-title">ABC Song</div>
-                        <div id="abc-status" class="abc-status">Tap Play when you are ready</div>
-                        <button type="button" class="play-btn abc-poster-play" onclick="playAbcSong()">▶ Play song</button>
+                        <div id="abc-status" class="abc-status">Ready when you are</div>
+                        <button type="button" class="play-btn abc-poster-play" onclick="openAbcYouTube()" style="background:linear-gradient(135deg,#E63946,#F77F00);">▶ Open YouTube</button>
+                        <button type="button" class="play-btn abc-poster-play" onclick="playAbcSong()" style="background:linear-gradient(135deg,#9B5DE5,#457B9D);">▶ Play here</button>
                     </div>
                     <iframe id="abc-iframe"
                         title="ABC Song"
@@ -1111,13 +1383,13 @@
                     </iframe>
                 </div>
                 <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:16px;">
-                    <button type="button" class="play-btn" onclick="playAbcSong()">▶ Play in game</button>
+                    <button type="button" class="play-btn" onclick="openAbcYouTube()" style="background:linear-gradient(135deg,#E63946,#F77F00);">▶ Open YouTube</button>
+                    <button type="button" class="play-btn" onclick="playAbcSong()">▶ Play here</button>
                     <button type="button" class="back-btn" onclick="stopAbcSong()" style="margin-bottom:0;">■ Stop</button>
                     <button type="button" class="play-btn" onclick="fullscreenAbcSong()" style="background:linear-gradient(135deg,#457B9D,#9B5DE5);">⛶ Fullscreen</button>
-                    <button type="button" class="play-btn" onclick="openAbcYouTube()" style="background:linear-gradient(135deg,#E63946,#F77F00);">▶ Open YouTube</button>
                 </div>
                 <p id="abc-help" style="color: var(--text-muted); font-style: italic; margin-top:12px; font-size:0.95rem;">
-                    Needs internet. Dark or blank box? Tap <strong>Open YouTube</strong> — that always works on phones.
+                    Needs internet. <strong>Open YouTube</strong> is the most reliable on phones. A short ad may play first — we can’t remove YouTube ads. Poster stays until you choose Play.
                 </p>
             </div>
         </div>
@@ -1151,7 +1423,7 @@
         <div id="game-shapes-match" class="screen">
             <button class="back-btn" onclick="goBackToSubmenu('shapes')">← Back</button>
             <div class="game-box">
-                <div class="game-prompt">Drag the shape into its home!</div>
+                <div class="game-prompt" id="prompt-shapes-match">Drag the shape into its home!</div>
                 <div class="drag-workspace" id="workspace-shapes"></div>
                 <p style="color: var(--text-muted); font-size: 0.95rem;">Drag with your finger or mouse 👆</p>
             </div>
@@ -1268,48 +1540,9 @@
         </div>
 
 
-        <!-- CREATE STUDIO (shared by 4 create mini-games) -->
+        <!-- CREATE STUDIO (shared by 4 create mini-games); chrome lives in header -->
         <div id="game-create-studio" class="screen paint-screen">
             <canvas id="paint-canvas" width="860" height="520"></canvas>
-
-            <!-- Always visible leave buttons (Finger Paint + tracing) -->
-            <div class="paint-always-nav" id="paint-always-nav">
-                <button type="button" class="back-btn" onclick="goBackToSubmenu('create')">← Back</button>
-                <button type="button" class="back-btn" onclick="showMenu()">Home</button>
-            </div>
-
-            <!-- Trace HUD (letters / numbers / shapes) -->
-            <div class="paint-trace-hud" id="paint-trace-hud">
-                <div class="hud-left">
-                    <div class="game-prompt" id="prompt-paint">Trace</div>
-                    <div class="paint-progress" title="Trace progress"><i id="paint-progress-bar"></i></div>
-                </div>
-                <div class="hud-right">
-                    <button type="button" class="paint-mode-btn" onclick="prevPaintGuide()">◀ Prev</button>
-                    <button type="button" class="paint-mode-btn" onclick="skipPaintGuide()">Next ▶</button>
-                    <button type="button" class="play-btn" style="padding:10px 18px;font-size:1rem;" onclick="completePaintGuide()">Done ✓</button>
-                </div>
-            </div>
-
-            <!-- Free paint: floating tools -->
-            <button type="button" class="paint-fab" id="paint-fab" onclick="togglePaintTools()" title="Tools">🛠️</button>
-            <div class="paint-float" id="paint-float">
-                <div class="paint-toolbar">
-                    <button type="button" onclick="togglePaintTools()">Close tools</button>
-                </div>
-                <div class="paint-toolbar" id="paint-brushes">
-                    <button type="button" class="paint-mode-btn brush-btn active" data-brush="thin" onclick="setPaintBrush('thin')">Thin</button>
-                    <button type="button" class="paint-mode-btn brush-btn" data-brush="normal" onclick="setPaintBrush('normal')">Normal</button>
-                    <button type="button" class="paint-mode-btn brush-btn" data-brush="thick" onclick="setPaintBrush('thick')">Thick</button>
-                    <button type="button" class="paint-mode-btn brush-btn" data-brush="eraser" onclick="setPaintBrush('eraser')">Eraser</button>
-                    <button type="button" class="paint-mode-btn brush-btn" data-brush="fill" onclick="setPaintBrush('fill')">Fill</button>
-                </div>
-                <div class="paint-colors" id="paint-colors"></div>
-                <div class="paint-toolbar">
-                    <button type="button" onclick="undoPaint()">Undo</button>
-                    <button type="button" onclick="clearPaint()">Clear</button>
-                </div>
-            </div>
         </div>
 
     </div><!-- end .container -->
@@ -1426,7 +1659,6 @@
                 clearSpeakQueue();
             }
             updateVoiceMuteBtn();
-            _processSpeakQueue();
         }
 
         function speak(text, opts = {}) {
@@ -1580,10 +1812,12 @@
             }
             activeGameTimers.forEach(id => { try { clearTimeout(id); clearInterval(id); } catch(e) {} });
             activeGameTimers = [];
-            document.querySelectorAll('.lit-up').forEach(el => el.classList.remove('lit-up'));
+            document.querySelectorAll('.lit-up, .tap-correct, .tap-wrong, .selected, .match-pick, .match-pair, .dragging, .slot-ready').forEach(el => {
+                el.classList.remove('lit-up', 'tap-correct', 'tap-wrong', 'selected', 'match-pick', 'match-pair', 'dragging', 'slot-ready');
+            });
             // Stop any HTMLAudioElements that might still be playing
             document.querySelectorAll('audio').forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e) {} });
-            try { paintDrawing = false; paintCompleting = false; } catch (e) {}
+            try { paintDrawing = false; paintCompleting = false; paintShapeStart = null; paintShapeSnapshot = null; } catch (e) {}
         }
 
         // Natural teacher-style praise (short phrases TTS reads clearly)
@@ -1605,8 +1839,15 @@
 
         function lightUp(el) {
             if (!el) return;
-            el.classList.add('lit-up');
-            setTimeout(() => el.classList.remove('lit-up'), 900);
+            el.classList.remove('tap-wrong');
+            el.classList.add('lit-up', 'tap-correct');
+            setTimeout(() => el.classList.remove('lit-up', 'tap-correct'), 900);
+        }
+        function flashWrong(el) {
+            if (!el) return;
+            el.classList.remove('lit-up', 'tap-correct');
+            el.classList.add('tap-wrong');
+            setTimeout(() => el.classList.remove('tap-wrong'), 520);
         }
 
         function playAnimalSound(fileBase) {
@@ -1813,14 +2054,122 @@
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); }
         }
 
+        // --- HEADER CHROME (mute | Back | Home | paint Tools | Save/Print) ---
+        let currentNavCategory = null;
+        let currentGameId = null;
+
+        function categoryFromGameId(gameId) {
+            if (!gameId) return null;
+            if (gameId.startsWith('sensory-')) return 'sensory';
+            if (gameId.startsWith('colors-')) return 'colors';
+            if (gameId.startsWith('shapes-')) return 'shapes';
+            if (gameId.startsWith('math-')) return 'math';
+            if (gameId.startsWith('english-')) return 'english';
+            if (gameId.startsWith('create-')) return 'create';
+            return null;
+        }
+
+        function setChromeVisible(el, on) {
+            if (!el) return;
+            if (on) el.removeAttribute('hidden');
+            else el.setAttribute('hidden', '');
+        }
+
+        function updateGamesChrome(opts) {
+            opts = opts || {};
+            const mode = opts.mode || 'menu'; // menu | submenu | game | paint | trace
+            const back = document.getElementById('chrome-back');
+            const home = document.getElementById('chrome-home');
+            const tools = document.getElementById('paint-fab');
+            const saveBtn = document.getElementById('paint-save-btn');
+            const hud = document.getElementById('paint-trace-hud');
+            const float = document.getElementById('paint-float');
+
+            const showNav = mode !== 'menu';
+            setChromeVisible(back, showNav);
+            setChromeVisible(home, showNav);
+            setChromeVisible(tools, mode === 'paint');
+            setChromeVisible(saveBtn, mode === 'paint');
+
+            if (hud) {
+                if (mode === 'trace') hud.classList.add('is-visible');
+                else hud.classList.remove('is-visible');
+                hud.style.display = '';
+            }
+            if (mode !== 'paint' && float) float.classList.remove('open');
+            document.body.classList.toggle('paint-active', mode === 'paint' || mode === 'trace');
+        }
+
+        function chromeGoBack() {
+            try { if (typeof stopAbcSong === 'function') stopAbcSong(); } catch (e) {}
+            closePaintTools();
+            if (currentGameId) {
+                const cat = currentNavCategory || categoryFromGameId(currentGameId) || 'sensory';
+                goBackToSubmenu(cat);
+                return;
+            }
+            if (currentNavCategory) {
+                showMenu();
+                return;
+            }
+            showMenu();
+        }
+
+        function chromeGoHome() {
+            try { if (typeof stopAbcSong === 'function') stopAbcSong(); } catch (e) {}
+            closePaintTools();
+            showMenu();
+        }
+
+        function saveOrPrintPaint() {
+            const canvas = document.getElementById('paint-canvas');
+            if (!canvas) return;
+            let saved = false;
+            try {
+                const url = canvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'stella-art.png';
+                a.rel = 'noopener';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                saved = true;
+            } catch (e) {
+                console.warn('Save image failed', e);
+            }
+            // One kid-friendly control: PNG download + print dialog (cancel if not wanted)
+            const isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+            const isPhoneUA = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '');
+            try {
+                if (!isPhoneUA && !isCoarse) {
+                    setTimeout(() => { try { window.print(); } catch (e2) {} }, saved ? 280 : 0);
+                } else if (!saved) {
+                    // Download blocked (e.g. some WebViews) — fall back to print/share sheet
+                    setTimeout(() => { try { window.print(); } catch (e2) {} }, 0);
+                }
+            } catch (e) {}
+            try { speak(saved ? 'Picture saved!' : 'Ready to print!'); } catch (e) {}
+        }
+
         function showMenu() {
             stopAllGameActivity();
+            currentNavCategory = null;
+            currentGameId = null;
+            closePaintTools();
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-menu').classList.add('active');
+            updateGamesChrome({ mode: 'menu' });
         }
+
+        // Initial chrome state (Learning Map)
+        updateGamesChrome({ mode: 'menu' });
 
         function showSubmenu(category) {
             stopAllGameActivity();
+            currentNavCategory = category || null;
+            currentGameId = null;
+            closePaintTools();
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             const container = document.getElementById('submenu-cards-container');
             container.innerHTML = '';
@@ -1848,6 +2197,7 @@
                 container.appendChild(card);
             });
             document.getElementById('screen-submenu').classList.add('active');
+            updateGamesChrome({ mode: 'submenu' });
         }
 
         function goBackToSubmenu(category) {
@@ -1857,6 +2207,9 @@
 
         function launchGame(gameId) {
             stopAllGameActivity();
+            currentGameId = gameId;
+            currentNavCategory = categoryFromGameId(gameId) || currentNavCategory;
+            closePaintTools();
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             // Four create games share one studio screen
             const screenId = gameId.startsWith('create-') ? 'create-studio' : gameId;
@@ -1864,9 +2217,13 @@
             if (!el) {
                 speak('That game is not ready yet');
                 document.getElementById('screen-submenu')?.classList.add('active');
+                updateGamesChrome({ mode: 'submenu' });
                 return;
             }
             el.classList.add('active');
+            if (!gameId.startsWith('create-')) {
+                updateGamesChrome({ mode: 'game' });
+            }
             
             if (gameId === 'sensory-mobile') initSensoryMobile();
             if (gameId === 'sensory-soundboard') initSensorySoundboard();
@@ -2043,7 +2400,7 @@
 
         function initAbcSong() {
             showAbcPoster(true);
-            setAbcStatus('Tap Play when you are ready');
+            setAbcStatus('Open YouTube works best — a short ad may play');
             const iframe = document.getElementById('abc-iframe');
             if (iframe) iframe.src = 'about:blank';
             speak("Let's sing the ABC song!");
@@ -2051,19 +2408,19 @@
         function playAbcSong() {
             const iframe = document.getElementById('abc-iframe');
             if (!iframe) return;
-            setAbcStatus('Loading song…');
+            setAbcStatus('Loading… a short YouTube ad may play first');
             showAbcPoster(true);
-            // Lazy-load embed only on Play (avoids dark empty iframe on open)
+            // Lazy-load embed only on intentional Play (poster stays until then)
             iframe.src = ABC_YT_EMBED + '&autoplay=1';
             iframe.onload = () => {
                 setAbcStatus('Playing — sing along!');
                 showAbcPoster(false);
             };
-            // If embed stays blocked/blank, poster help + Open YouTube remain obvious
             scheduleNext(() => {
                 if (!document.getElementById('game-sensory-abcsong')?.classList.contains('active')) return;
                 if (iframe.getAttribute('src') && iframe.src.indexOf('about:blank') === -1) {
-                    setAbcStatus('Still dark? Use Open YouTube');
+                    setAbcStatus('Still dark or stuck on an ad? Use Open YouTube');
+                    showAbcPoster(true);
                 }
             }, 4500);
             speak('Sing along!');
@@ -2075,9 +2432,10 @@
                 iframe.src = 'about:blank';
             }
             showAbcPoster(true);
-            setAbcStatus('Stopped. Tap Play to sing again');
+            setAbcStatus('Stopped. Open YouTube or Play here again');
         }
         function openAbcYouTube() {
+            setAbcStatus('Opening YouTube — a short ad may play');
             window.open(ABC_YT_WATCH, '_blank', 'noopener,noreferrer');
         }
         function fullscreenAbcSong() {
@@ -2129,6 +2487,7 @@
                         triggerConfetti();
                         scheduleNext(() => initColorsBlobs(), 1500);
                     } else {
+                        flashWrong(b);
                         playSound('fail');
                         speak('Try again');
                         allowRetry();
@@ -2157,7 +2516,10 @@
             document.getElementById('card-color-text').innerText = `${c.emoji} ${c.name}`;
             playSound(currentFlashIdx);
             if (card) lightUp(card);
-            if (announce !== false) speak(c.name);
+            if (announce !== false) {
+                clearSpeakQueue();
+                speak(c.name);
+            }
         }
 
         // --- STAGE 2-3 GAME A: PUZZLE MATCHING ---
@@ -2169,17 +2531,23 @@
             {id: 'star',     color: '#2A9D8F', svg: '<polygon points="50,5 64,36 98,36 70,57 81,91 50,70 19,91 30,57 2,36 36,36" fill="COLOR"/>'}
         ];
         function initShapesMatch() {
+            // Unlock for drag — never leave inputLocked true mid-drag from a prior game
             beginRound();
+            unlockInput();
+            const prompt = document.getElementById('prompt-shapes-match');
+            if (prompt) prompt.innerText = 'Drag each shape into its home!';
             speak("Drag each shape into its home");
-            const workspace = document.getElementById('workspace-shapes'); 
+            const workspace = document.getElementById('workspace-shapes');
             workspace.innerHTML = '';
             workspace.style.position = 'relative';
             const session = gameSession;
 
-            // Wait a frame so the active screen has real width (avoid 0→600 overflow on phones)
+            // Double rAF so active screen has real width/height on phones
             requestAnimationFrame(() => {
-                if (session !== gameSession) return;
-                layoutShapesMatch(workspace);
+                requestAnimationFrame(() => {
+                    if (session !== gameSession) return;
+                    layoutShapesMatch(workspace);
+                });
             });
         }
 
@@ -2187,11 +2555,14 @@
             if (!workspace) return;
             workspace.innerHTML = '';
             let w = workspace.clientWidth;
+            let h = workspace.clientHeight;
             if (w < 80) w = Math.min(600, Math.max(280, window.innerWidth - 40));
+            if (h < 80) h = 320;
             const slotSize = Math.min(90, Math.max(56, Math.floor((w - 40) / 4)));
             const gap = Math.max(6, Math.floor((w - slotSize * 4) / 5));
-            const snapDist = Math.max(48, Math.floor(slotSize * 0.7));
-            const pieceTop = Math.min(slotSize + 50, Math.max(120, (workspace.clientHeight || 320) - slotSize - 16));
+            // Kid-friendly snap: ~85% of slot size
+            const snapDist = Math.max(56, Math.floor(slotSize * 0.85));
+            const pieceTop = Math.max(slotSize + 36, Math.min(h - slotSize - 12, Math.floor(h * 0.58)));
 
             GEOMETRIES.forEach((g, idx) => {
                 const leftPos = gap + idx * (slotSize + gap);
@@ -2205,7 +2576,7 @@
                 slot.style.height = slotSize + 'px';
                 slot.style.left = leftPos + 'px';
                 slot.style.top = '16px';
-                slot.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${g.svg.replace('COLOR', g.color + '33')}</svg>`;
+                slot.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%" style="pointer-events:none">${g.svg.replace('COLOR', g.color + '33')}</svg>`;
                 workspace.appendChild(slot);
 
                 const item = document.createElement('div');
@@ -2218,7 +2589,7 @@
                 item.style.height = slotSize + 'px';
                 item.style.left = leftPos + 'px';
                 item.style.top = pieceTop + 'px';
-                item.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${g.svg.replace('COLOR', g.color)}</svg>`;
+                item.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%" style="pointer-events:none">${g.svg.replace('COLOR', g.color)}</svg>`;
                 workspace.appendChild(item);
 
                 setupPointerDrag(item, slot, g.id, snapDist);
@@ -2227,26 +2598,45 @@
 
         function setupPointerDrag(element, targetSlot, shapeId, snapDist) {
             let activeDrag = false;
+            let pointerId = null;
             let startX, startY, initialLeft, initialTop;
             let originLeft, originTop;
-            const threshold = snapDist || 55;
+            const threshold = snapDist || 60;
+
+            const detachWin = () => {
+                window.removeEventListener('pointermove', onMove);
+                window.removeEventListener('pointerup', onUp);
+                window.removeEventListener('pointercancel', onUp);
+            };
 
             const onDown = (e) => {
-                if (element.style.pointerEvents === 'none') return;
+                if (element.classList.contains('placed')) return;
+                // Drag must work even if a prior tap lock is somehow set
+                if (typeof e.button === 'number' && e.button !== 0) return;
                 e.preventDefault();
+                e.stopPropagation();
                 activeDrag = true;
-                element.setPointerCapture(e.pointerId);
-                element.style.zIndex = '200';
+                pointerId = e.pointerId;
+                try { element.setPointerCapture(e.pointerId); } catch (_) {}
+                element.classList.add('dragging');
+                element.style.zIndex = '300';
+                element.style.transition = 'none';
                 startX = e.clientX;
                 startY = e.clientY;
                 initialLeft = parseFloat(element.style.left) || 0;
                 initialTop = parseFloat(element.style.top) || 0;
                 originLeft = initialLeft;
                 originTop = initialTop;
+                targetSlot.classList.add('slot-ready');
+                // Window listeners so movement stays visible even if capture fails
+                window.addEventListener('pointermove', onMove, { passive: false });
+                window.addEventListener('pointerup', onUp, { passive: false });
+                window.addEventListener('pointercancel', onUp, { passive: false });
             };
 
             const onMove = (e) => {
                 if (!activeDrag) return;
+                if (pointerId != null && e.pointerId !== pointerId) return;
                 e.preventDefault();
                 const dx = e.clientX - startX;
                 const dy = e.clientY - startY;
@@ -2256,9 +2646,14 @@
 
             const onUp = (e) => {
                 if (!activeDrag) return;
+                if (e && pointerId != null && e.pointerId !== pointerId && e.pointerId !== -1) return;
                 activeDrag = false;
-                try { element.releasePointerCapture(e.pointerId); } catch(_) {}
+                detachWin();
+                try { if (e && e.pointerId != null) element.releasePointerCapture(e.pointerId); } catch (_) {}
+                element.classList.remove('dragging');
                 element.style.zIndex = '100';
+                element.style.transition = '';
+                targetSlot.classList.remove('slot-ready');
 
                 const sRect = targetSlot.getBoundingClientRect();
                 const pRect = element.getBoundingClientRect();
@@ -2271,18 +2666,21 @@
                 if (distance < threshold) {
                     element.style.left = targetSlot.style.left;
                     element.style.top = targetSlot.style.top;
-                    element.style.pointerEvents = 'none';
                     element.classList.add('placed');
                     const shape = GEOMETRIES.find(g => g.id === shapeId);
                     if (shape) {
-                        targetSlot.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${shape.svg.replace('COLOR', shape.color)}</svg>`;
+                        targetSlot.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%" style="pointer-events:none">${shape.svg.replace('COLOR', shape.color)}</svg>`;
                     }
+                    targetSlot.classList.add('slot-filled');
                     clearSpeakQueue();
                     playSound('success');
                     praise();
 
                     const placed = document.querySelectorAll('#workspace-shapes .interactive-item.placed');
+                    const prompt = document.getElementById('prompt-shapes-match');
+                    if (prompt) prompt.innerText = placed.length + ' of 4 homes filled!';
                     if (placed.length === 4) {
+                        if (prompt) prompt.innerText = 'All homes filled! 🎉';
                         lockInput();
                         triggerConfetti();
                         scheduleNext(() => initShapesMatch(), 2000);
@@ -2290,15 +2688,12 @@
                 } else {
                     element.style.left = originLeft + 'px';
                     element.style.top = originTop + 'px';
+                    flashWrong(element);
                     playSound('fail');
                 }
             };
 
             element.addEventListener('pointerdown', onDown);
-            element.addEventListener('pointermove', onMove);
-            element.addEventListener('pointerup', onUp);
-            element.addEventListener('pointercancel', onUp);
-            element.addEventListener('lostpointercapture', () => { if (activeDrag) onUp({ pointerId: -1 }); });
         }
 
         // --- STAGE 2-3 GAME B: SIZE SORTING ---
@@ -2342,10 +2737,9 @@
                         praise();
                         triggerConfetti(); scheduleNext(() => initShapesSize(), 1800);
                     } else {
+                        flashWrong(box);
                         playSound('fail');
                         speak('Try again');
-                        box.style.transform = 'scale(0.9)';
-                        setTimeout(() => box.style.transform = '', 150);
                         allowRetry();
                     }
                 };
@@ -2630,6 +3024,8 @@
         }
         function initColorsMatch() {
             const round = beginRound();
+            const prompt = document.querySelector('#game-colors-match .game-prompt');
+            if (prompt) prompt.innerText = 'Find two matching colors';
             speak("Find two colors that are the same");
             const opts = document.getElementById('options-colors-match');
             if (!opts) return;
@@ -2643,26 +3039,39 @@
                 b.className = 'color-blob';
                 b.style.backgroundColor = c.hex;
                 b.dataset.name = c.name;
+                b.setAttribute('role', 'button');
+                b.setAttribute('aria-label', c.name);
                 b.onclick = () => {
                     if (inputLocked) return;
                     if (round !== answerRound) return;
                     clearSpeakQueue();
                     if (!selected) {
                         selected = b;
-                        b.style.outline = '6px solid gold';
+                        b.classList.add('selected', 'match-pick');
+                        if (prompt) prompt.innerText = `You picked ${c.name} — find another!`;
                         speak(c.name);
                     } else if (selected === b) {
-                        selected.style.outline = 'none';
+                        selected.classList.remove('selected', 'match-pick');
                         selected = null;
+                        if (prompt) prompt.innerText = 'Find two matching colors';
                     } else if (selected.dataset.name === c.name) {
                         lockInput();
+                        selected.classList.remove('selected', 'match-pick');
+                        selected.classList.add('match-pair');
+                        b.classList.add('match-pair');
+                        lightUp(selected);
+                        lightUp(b);
+                        if (prompt) prompt.innerText = `Yes! Matching ${c.name}!`;
                         playSound('success'); praise();
                         triggerConfetti(); scheduleNext(() => initColorsMatch(), 1600);
                     } else {
                         lockInput();
+                        flashWrong(b);
+                        flashWrong(selected);
                         playSound('fail'); speak('Try again');
-                        selected.style.outline = 'none';
+                        selected.classList.remove('selected', 'match-pick');
                         selected = null;
+                        if (prompt) prompt.innerText = 'Find two matching colors';
                         allowRetry();
                     }
                 };
@@ -2692,9 +3101,12 @@
                     if (!takeAnswer(round)) return;
                     if (s === target) {
                         lightUp(box);
+                        if (prompt) prompt.innerText = `Yes! That's the ${target}!`;
                         playSound('success'); praise();
                         triggerConfetti(); scheduleNext(() => initShapesFind(), 1600);
                     } else {
+                        flashWrong(box);
+                        if (prompt) prompt.innerText = `Not that one — find the ${target}!`;
                         playSound('fail'); speak('Try again');
                         allowRetry();
                     }
@@ -2727,19 +3139,26 @@
                 box.style.cursor = 'pointer';
                 box.style.margin = '6px';
                 box.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${g.svg.replace('COLOR', g.color)}</svg>`;
+                box.style.transition = 'transform 0.2s ease, opacity 0.25s ease, filter 0.15s ease';
                 box.onclick = () => {
-                    if (box.style.opacity === '0') return;
+                    if (box.style.opacity === '0' || box.dataset.popped === '1') return;
                     if (inputLocked) return;
                     if (round !== answerRound) return;
                     clearSpeakQueue();
                     if (s === target) {
+                        box.dataset.popped = '1';
+                        lightUp(box);
                         playSound('success');
-                        box.style.opacity = '0';
-                        box.style.transform = 'scale(0)';
-                        box.style.pointerEvents = 'none';
+                        if (prompt) prompt.innerText = `Pop! ${remaining - 1} ${target}s left`;
+                        setTimeout(() => {
+                            box.style.opacity = '0';
+                            box.style.transform = 'scale(0)';
+                            box.style.pointerEvents = 'none';
+                        }, 180);
                         remaining--;
                         if (remaining <= 0) {
                             lockInput();
+                            if (prompt) prompt.innerText = `You popped all the ${target}s!`;
                             speak(`You popped all the ${target}s!`);
                             triggerConfetti();
                             scheduleNext(() => initShapesPop(), 1600);
@@ -2748,6 +3167,8 @@
                         }
                     } else {
                         lockInput();
+                        flashWrong(box);
+                        if (prompt) prompt.innerText = `Oops — pop the ${target}s!`;
                         playSound('fail'); speak(`Find the ${target}`);
                         allowRetry();
                     }
@@ -2784,10 +3205,13 @@
                     if (!takeAnswer(round)) return;
                     if (num === n) {
                         lightUp(b);
+                        if (prompt) prompt.innerText = `Yes! ${n}!`;
                         playSound('success'); praise();
                         mathTouchIdx = mathTouchIdx >= 10 ? 1 : mathTouchIdx + 1;
                         triggerConfetti(); scheduleNext(() => initMathTouch(), 1600);
                     } else {
+                        flashWrong(b);
+                        if (prompt) prompt.innerText = `Not ${num} — tap ${n}`;
                         playSound('fail'); speak('Try again');
                         allowRetry();
                     }
@@ -2871,10 +3295,17 @@
         }
         function speakLetterSound(L) {
             clearSpeakQueue();
+            const gen = _speakGen;
             const little = String(L).toLowerCase();
             speak('This is the big letter ' + L);
-            scheduleNext(() => speak('This is the little letter ' + little), 1200);
-            scheduleNext(() => speak(L + ' says ' + little), 2600);
+            scheduleNext(() => {
+                if (gen !== _speakGen) return;
+                speak('This is the little letter ' + little);
+            }, 1200);
+            scheduleNext(() => {
+                if (gen !== _speakGen) return;
+                speak(L + ' says ' + little);
+            }, 2600);
         }
         function initEnglishWords() {
             pictureWordIdx = 0;
@@ -2904,8 +3335,12 @@
         }
         function speakWordCard(name, L) {
             clearSpeakQueue();
+            const gen = _speakGen;
             speak(name);
-            scheduleNext(() => speak(name + ' starts with the letter ' + L), 1100);
+            scheduleNext(() => {
+                if (gen !== _speakGen) return;
+                speak(name + ' starts with the letter ' + L);
+            }, 1100);
         }
 
         
@@ -2925,6 +3360,7 @@
         let paintMode = 'paint';
         let paintColor = '#E63946';
         let paintBrush = 'normal';
+        let paintSizeKey = 'normal'; // last free-draw size (thin/normal/thick/crayon/marker)
         let paintDrawing = false;
         let paintGuideIndex = 0;
         let paintCompleting = false;
@@ -2935,6 +3371,8 @@
         let paintHitCount = 0;
         let paintStrokeInk = 0;
         let paintUndoStack = [];
+        let paintShapeStart = null; // {x,y} for line/rect/circle
+        let paintShapeSnapshot = null; // ImageData for live preview
         const PAINT_UNDO_MAX = 25;
         const PAINT_COLORS = ['#E63946','#F77F00','#FCBF49','#2A9D8F','#457B9D','#9B5DE5','#FF6B9D','#2B2D42','#111111','#FFFFFF'];
         const PAINT_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -2945,7 +3383,27 @@
         });
         const PAINT_NUMBERS = ['0','1','2','3','4','5','6','7','8','9','10'];
         const PAINT_SHAPES = ['circle', 'square', 'triangle', 'star'];
-        const BRUSH_SIZES = { thin: 6, normal: 14, thick: 28, eraser: 30 };
+        const BRUSH_SIZES = { thin: 6, normal: 14, thick: 28, eraser: 30, crayon: 18, marker: 24, spray: 6 };
+        const PAINT_STAMP_EMOJI = {
+            'stamp-star': '⭐',
+            'stamp-heart': '❤️',
+            'stamp-smiley': '😊',
+            'stamp-flower': '🌸',
+            'stamp-sun': '☀️',
+            'stamp-rainbow': '🌈',
+            'stamp-cat': '🐱',
+            'stamp-dog': '🐶',
+            'stamp-car': '🚗',
+            'stamp-tree': '🌳'
+        };
+        function isPaintStamp(brush) { return !!PAINT_STAMP_EMOJI[brush]; }
+        function isPaintShapeTool(brush) {
+            return brush === 'shape-line' || brush === 'shape-rect' || brush === 'shape-circle';
+        }
+        function isPaintFreeStroke(brush) {
+            return brush === 'thin' || brush === 'normal' || brush === 'thick'
+                || brush === 'crayon' || brush === 'marker' || brush === 'spray' || brush === 'eraser';
+        }
 
         function togglePaintTools() {
             const panel = document.getElementById('paint-float');
@@ -2970,16 +3428,17 @@
             paintHitFlags = null;
             paintHitCount = 0;
 
+            paintSizeKey = 'normal';
+            paintShapeStart = null;
+            paintShapeSnapshot = null;
             document.querySelectorAll('.brush-btn').forEach(b => {
                 b.classList.toggle('active', b.getAttribute('data-brush') === 'normal');
             });
 
-            const fab = document.getElementById('paint-fab');
             const float = document.getElementById('paint-float');
-            const hud = document.getElementById('paint-trace-hud');
             const prompt = document.getElementById('prompt-paint');
 
-            // Build color tray (free paint)
+            // Build color tray (free paint) + custom color picker
             const colors = document.getElementById('paint-colors');
             if (colors) {
                 colors.innerHTML = '';
@@ -2990,12 +3449,29 @@
                     if (col === '#FFFFFF') s.style.border = '3px solid #ccc';
                     s.onclick = () => {
                         paintColor = col;
+                        const picker = document.getElementById('paint-color-picker');
+                        if (picker) picker.value = col;
                         if (paintBrush === 'eraser') setPaintBrush('normal');
                         colors.querySelectorAll('.paint-swatch').forEach(x => x.classList.remove('active'));
                         s.classList.add('active');
                     };
                     colors.appendChild(s);
                 });
+                const custom = document.createElement('label');
+                custom.className = 'paint-color-custom';
+                custom.title = 'Pick any color';
+                const picker = document.createElement('input');
+                picker.type = 'color';
+                picker.id = 'paint-color-picker';
+                picker.value = paintColor || '#E63946';
+                picker.setAttribute('aria-label', 'Custom color');
+                picker.oninput = () => {
+                    paintColor = picker.value;
+                    if (paintBrush === 'eraser') setPaintBrush('normal');
+                    colors.querySelectorAll('.paint-swatch').forEach(x => x.classList.remove('active'));
+                };
+                custom.appendChild(picker);
+                colors.appendChild(custom);
             }
 
             setupPaintCanvas();
@@ -3007,17 +3483,16 @@
                 sizePaintCanvas();
                 if (paintMode === 'paint') {
                     paintColor = '#E63946';
-                    if (fab) fab.style.display = 'flex';
                     if (float) float.style.display = '';
-                    if (hud) hud.style.display = 'none';
+                    updateGamesChrome({ mode: 'paint' });
                     wipePaintCanvas(true);
-                    speak('Finger paint. Open the tool button to pick colors and brushes!');
+                    clearSpeakQueue();
+                    speak('Finger paint. Open Tools for colors, brushes, stamps and shapes!');
                 } else {
                     paintColor = '#111111';
                     paintBrush = 'normal';
-                    if (fab) fab.style.display = 'none';
                     if (float) { float.classList.remove('open'); float.style.display = 'none'; }
-                    if (hud) hud.style.display = 'flex';
+                    updateGamesChrome({ mode: 'trace' });
                     showPaintGuide(true);
                 }
                 updatePaintProgress();
@@ -3029,10 +3504,18 @@
         function sizePaintCanvas() {
             const canvas = document.getElementById('paint-canvas');
             const screen = document.getElementById('game-create-studio');
+            const container = document.querySelector('.container');
             if (!canvas || !screen) return;
             const rect = screen.getBoundingClientRect();
-            const w = Math.max(280, Math.floor(rect.width || window.innerWidth || 800));
-            const h = Math.max(280, Math.floor(rect.height || window.innerHeight * 0.7 || 500));
+            let w = Math.floor(rect.width || 0);
+            let h = Math.floor(rect.height || 0);
+            if (w < 40 || h < 40) {
+                const crect = container ? container.getBoundingClientRect() : null;
+                w = Math.floor((crect && crect.width) || window.innerWidth || 800);
+                h = Math.floor((crect && crect.height) || window.innerHeight * 0.55 || 500);
+            }
+            w = Math.max(280, w);
+            h = Math.max(280, h);
             if (canvas.width === w && canvas.height === h) return;
             canvas.width = w;
             canvas.height = h;
@@ -3040,9 +3523,146 @@
 
         function setPaintBrush(brush) {
             paintBrush = brush;
+            if (brush === 'thin' || brush === 'normal' || brush === 'thick'
+                || brush === 'crayon' || brush === 'marker') {
+                paintSizeKey = brush;
+            }
             document.querySelectorAll('.brush-btn').forEach(b => {
                 b.classList.toggle('active', b.getAttribute('data-brush') === brush);
             });
+        }
+
+        function drawPaintStamp(ctx, brush, x, y, color) {
+            const emoji = PAINT_STAMP_EMOJI[brush];
+            if (!emoji) return;
+            const size = Math.max(36, Math.min(96, (BRUSH_SIZES[paintSizeKey] || 14) * 3.2));
+            ctx.save();
+            ctx.globalAlpha = 1;
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.font = size + 'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            // Slight color hint ring under monochrome-leaning stamps (emoji stay multicolor)
+            ctx.beginPath();
+            ctx.fillStyle = color || paintColor;
+            ctx.globalAlpha = 0.18;
+            ctx.arc(x, y, size * 0.42, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+            ctx.fillText(emoji, x, y);
+            ctx.restore();
+        }
+
+        function drawPaintShapePreview(ctx, kind, x0, y0, x1, y1, color, lineW) {
+            ctx.save();
+            ctx.globalAlpha = 1;
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = color || paintColor;
+            ctx.lineWidth = lineW || BRUSH_SIZES.normal;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            if (kind === 'shape-line') {
+                ctx.moveTo(x0, y0);
+                ctx.lineTo(x1, y1);
+            } else if (kind === 'shape-rect') {
+                const rx = Math.min(x0, x1);
+                const ry = Math.min(y0, y1);
+                ctx.strokeRect(rx, ry, Math.abs(x1 - x0), Math.abs(y1 - y0));
+                ctx.restore();
+                return;
+            } else if (kind === 'shape-circle') {
+                const cx = (x0 + x1) / 2;
+                const cy = (y0 + y1) / 2;
+                const rx = Math.abs(x1 - x0) / 2;
+                const ry = Math.abs(y1 - y0) / 2;
+                if (rx < 0.5 && ry < 0.5) { ctx.restore(); return; }
+                ctx.ellipse(cx, cy, Math.max(0.5, rx), Math.max(0.5, ry), 0, 0, Math.PI * 2);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function paintStrokeAlong(ctx, x0, y0, x1, y1, size) {
+            if (paintBrush === 'spray') {
+                const dist = Math.hypot(x1 - x0, y1 - y0);
+                const steps = Math.max(1, Math.floor(dist / 4));
+                const radius = Math.max(14, size * 4);
+                ctx.save();
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.fillStyle = paintColor;
+                for (let s = 0; s <= steps; s++) {
+                    const t = s / steps;
+                    const bx = x0 + (x1 - x0) * t;
+                    const by = y0 + (y1 - y0) * t;
+                    const dots = 6 + Math.floor(Math.random() * 5);
+                    for (let i = 0; i < dots; i++) {
+                        const ang = Math.random() * Math.PI * 2;
+                        const rad = Math.random() * radius;
+                        const dx = Math.cos(ang) * rad;
+                        const dy = Math.sin(ang) * rad;
+                        const a = 0.12 + Math.random() * 0.28;
+                        ctx.globalAlpha = a;
+                        ctx.beginPath();
+                        ctx.arc(bx + dx, by + dy, 1.2 + Math.random() * 2.2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+                ctx.restore();
+                return;
+            }
+            if (paintBrush === 'crayon') {
+                ctx.save();
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = paintColor;
+                ctx.fillStyle = paintColor;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.globalAlpha = 0.92;
+                // Opaque stubby core + slight shadow / wobble segments
+                ctx.shadowColor = 'rgba(0,0,0,0.18)';
+                ctx.shadowBlur = 1.5;
+                ctx.shadowOffsetX = 0.6;
+                ctx.shadowOffsetY = 0.8;
+                const dist = Math.hypot(x1 - x0, y1 - y0);
+                const steps = Math.max(1, Math.floor(dist / 5));
+                for (let s = 0; s < steps; s++) {
+                    const t0 = s / steps;
+                    const t1 = (s + 1) / steps;
+                    const ax = x0 + (x1 - x0) * t0 + (Math.random() - 0.5) * 1.6;
+                    const ay = y0 + (y1 - y0) * t0 + (Math.random() - 0.5) * 1.6;
+                    const bx = x0 + (x1 - x0) * t1 + (Math.random() - 0.5) * 1.6;
+                    const by = y0 + (y1 - y0) * t1 + (Math.random() - 0.5) * 1.6;
+                    ctx.lineWidth = size * (0.85 + Math.random() * 0.35);
+                    ctx.beginPath();
+                    ctx.moveTo(ax, ay);
+                    ctx.lineTo(bx, by);
+                    ctx.stroke();
+                }
+                ctx.restore();
+                return;
+            }
+            if (paintBrush === 'marker') {
+                ctx.save();
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.globalAlpha = 0.42;
+                ctx.strokeStyle = paintColor;
+                ctx.lineWidth = size;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+                ctx.moveTo(x0, y0);
+                ctx.lineTo(x1, y1);
+                ctx.stroke();
+                ctx.restore();
+                return;
+            }
+            // thin / normal / thick / eraser already styled by strokeStyleForMode
+            ctx.beginPath();
+            ctx.moveTo(x0, y0);
+            ctx.lineTo(x1, y1);
+            ctx.stroke();
         }
 
         function pushPaintUndo() {
@@ -3449,7 +4069,7 @@
         function buildGuideFromStrokes(strokes) {
             const pts = [];
             const ranges = [];
-            const spacing = paintMode === 'shapes' ? 5 : 7;
+            const spacing = paintMode === 'shapes' ? 6 : (paintMode === 'numbers' ? 6 : 7);
             for (const stroke of strokes) {
                 if (!stroke || stroke.length < 2) continue;
                 const start = pts.length;
@@ -3536,17 +4156,23 @@
             const label = drawPaintGuide();
             const prompt = document.getElementById('prompt-paint');
             if (prompt && label) prompt.innerText = label;
-            if (announce && label) speak(label);
+            if (announce && label) {
+                // Stop any prior Trace X pile-up; speak only the glyph now on screen
+                clearSpeakQueue();
+                speak(label);
+            }
         }
 
         function skipPaintGuide() {
             if (paintMode === 'paint' || paintCompleting) return;
+            clearSpeakQueue();
             const max = paintMode === 'letters' ? PAINT_LETTER_GUIDES.length : paintMode === 'numbers' ? PAINT_NUMBERS.length : 4;
             paintGuideIndex = (paintGuideIndex + 1) % max;
             showPaintGuide(true);
         }
         function prevPaintGuide() {
             if (paintMode === 'paint' || paintCompleting) return;
+            clearSpeakQueue();
             const max = paintMode === 'letters' ? PAINT_LETTER_GUIDES.length : paintMode === 'numbers' ? PAINT_NUMBERS.length : 4;
             paintGuideIndex = (paintGuideIndex - 1 + max) % max;
             showPaintGuide(true);
@@ -3555,6 +4181,7 @@
         function failTraceAndReset() {
             if (paintCompleting) return;
             playSound('fail');
+            clearSpeakQueue();
             const left = Math.max(0, 100 - Math.round(traceCoverage() * 100));
             if (left > 5 && left < 100) {
                 speak('Keep going. Finish the whole shape.');
@@ -3568,14 +4195,26 @@
             if (!paintGuidePoints.length) return 0;
             return paintHitCount / paintGuidePoints.length;
         }
+        function paintCompleteThreshold() {
+            // Kid-friendly: shapes/numbers ~85–88%, letters a bit stricter
+            if (paintMode === 'shapes') return 0.85;
+            if (paintMode === 'numbers') return 0.87;
+            return 0.88;
+        }
+        function paintStrokeMin() {
+            if (paintMode === 'shapes') return 0.50;
+            if (paintMode === 'numbers') return 0.55;
+            return 0.62;
+        }
         function allStrokesTraced() {
             if (!paintStrokeRanges.length || !paintHitFlags) return false;
+            const min = paintStrokeMin();
             for (const r of paintStrokeRanges) {
                 const n = r.end - r.start;
                 if (n <= 0) continue;
                 let hit = 0;
                 for (let i = r.start; i < r.end; i++) if (paintHitFlags[i]) hit++;
-                if (hit / n < 0.72) return false; // every line of the letter must be drawn
+                if (hit / n < min) return false;
             }
             return true;
         }
@@ -3583,14 +4222,16 @@
         function completePaintGuide() {
             if (paintMode === 'paint' || paintCompleting) return;
             const cov = traceCoverage();
-            // Must finish the whole letter/number (not just two lines of A)
-            if (cov < 0.90 || !allStrokesTraced()) {
+            const need = paintCompleteThreshold();
+            // Soft auto-complete when close enough for kids
+            if (cov < need || !allStrokesTraced()) {
                 failTraceAndReset();
                 return;
             }
             paintCompleting = true;
             playSound('success');
             triggerConfetti();
+            clearSpeakQueue();
             const session = gameSession;
             praise(() => {
                 if (session !== gameSession) { paintCompleting = false; return; }
@@ -3628,22 +4269,43 @@
             }
 
             function brushSize() {
-                if (paintMode === 'paint') return BRUSH_SIZES[paintBrush] || 14;
-                // Shapes need a friendlier hit radius than skinny letter strokes
-                const base = Math.max(12, Math.floor(Math.min(canvas.width, canvas.height) / 40));
-                return paintMode === 'shapes' ? Math.max(16, base + 4) : base;
+                if (paintMode === 'paint') {
+                    if (isPaintStamp(paintBrush) || isPaintShapeTool(paintBrush)) {
+                        return BRUSH_SIZES[paintSizeKey] || 14;
+                    }
+                    if (paintBrush === 'spray') return BRUSH_SIZES.spray;
+                    return BRUSH_SIZES[paintBrush] || BRUSH_SIZES[paintSizeKey] || 14;
+                }
+                // Friendlier ink + hit for kids (shapes/numbers especially)
+                const base = Math.max(14, Math.floor(Math.min(canvas.width, canvas.height) / 36));
+                if (paintMode === 'shapes') return Math.max(20, base + 6);
+                if (paintMode === 'numbers') return Math.max(18, base + 4);
+                return base;
             }
 
             function hitRadius(size) {
-                return paintMode === 'shapes' ? size * 1.55 : size * 1.25;
+                if (paintMode === 'shapes') return size * 2.05;
+                if (paintMode === 'numbers') return size * 1.75;
+                return size * 1.45;
             }
 
             function strokeStyleForMode(ctx, size) {
                 ctx.setLineDash([]);
                 ctx.globalCompositeOperation = 'source-over';
                 ctx.globalAlpha = 1;
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
                 if (paintMode === 'paint') {
-                    if (paintBrush === 'fill') return false;
+                    if (paintBrush === 'fill' || isPaintStamp(paintBrush) || isPaintShapeTool(paintBrush)) return false;
+                    if (paintBrush === 'spray' || paintBrush === 'crayon' || paintBrush === 'marker') {
+                        // Handled in paintStrokeAlong
+                        ctx.strokeStyle = paintColor;
+                        ctx.fillStyle = paintColor;
+                        ctx.lineWidth = size;
+                        ctx.lineCap = 'round';
+                        ctx.lineJoin = 'round';
+                        return true;
+                    }
                     ctx.strokeStyle = paintBrush === 'eraser' ? '#ffffff' : paintColor;
                     ctx.fillStyle = ctx.strokeStyle;
                 } else {
@@ -3673,18 +4335,49 @@
                     floodFill(p.x, p.y, paintColor);
                     return;
                 }
+                // Tap-to-stamp (place once on pointer down)
+                if (paintMode === 'paint' && isPaintStamp(paintBrush)) {
+                    pushPaintUndo();
+                    const ctx = canvas.getContext('2d');
+                    drawPaintStamp(ctx, paintBrush, p.x, p.y, paintColor);
+                    paintDrawing = false;
+                    paintShapeStart = null;
+                    paintShapeSnapshot = null;
+                    return;
+                }
+                // Shape tools: snapshot for live preview
+                if (paintMode === 'paint' && isPaintShapeTool(paintBrush)) {
+                    pushPaintUndo();
+                    const ctx = canvas.getContext('2d');
+                    try {
+                        paintShapeSnapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    } catch (_) {
+                        paintShapeSnapshot = null;
+                    }
+                    paintShapeStart = { x: p.x, y: p.y };
+                    paintDrawing = true;
+                    paintLastX = p.x; paintLastY = p.y;
+                    try { if (e.pointerId != null) canvas.setPointerCapture(e.pointerId); } catch (_) {}
+                    return;
+                }
                 ensureGuideReady();
                 paintDrawing = true;
                 paintStrokeInk = 0;
+                paintShapeStart = null;
+                paintShapeSnapshot = null;
                 pushPaintUndo();
                 paintLastX = p.x; paintLastY = p.y;
                 const ctx = canvas.getContext('2d');
                 const size = brushSize();
                 if (!strokeStyleForMode(ctx, size)) return;
                 // Visible ink on press (not only on move) — fixes “drag with no trace”
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, size / 2, 0, Math.PI * 2);
-                ctx.fill();
+                if (paintMode === 'paint' && (paintBrush === 'spray' || paintBrush === 'crayon' || paintBrush === 'marker')) {
+                    paintStrokeAlong(ctx, p.x, p.y, p.x, p.y, size);
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, size / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
                 if (paintMode !== 'paint') {
                     markGuideHits(p.x, p.y, hitRadius(size));
                 }
@@ -3696,12 +4389,28 @@
                 e.preventDefault();
                 const p = pos(e);
                 const ctx = canvas.getContext('2d');
+
+                // Shape live preview
+                if (paintMode === 'paint' && isPaintShapeTool(paintBrush) && paintShapeStart) {
+                    if (paintShapeSnapshot) {
+                        try { ctx.putImageData(paintShapeSnapshot, 0, 0); } catch (_) {}
+                    }
+                    const lw = brushSize();
+                    drawPaintShapePreview(ctx, paintBrush, paintShapeStart.x, paintShapeStart.y, p.x, p.y, paintColor, lw);
+                    paintLastX = p.x; paintLastY = p.y;
+                    return;
+                }
+
                 const size = brushSize();
                 if (!strokeStyleForMode(ctx, size)) return;
-                ctx.beginPath();
-                ctx.moveTo(paintLastX, paintLastY);
-                ctx.lineTo(p.x, p.y);
-                ctx.stroke();
+                if (paintMode === 'paint' && (paintBrush === 'spray' || paintBrush === 'crayon' || paintBrush === 'marker')) {
+                    paintStrokeAlong(ctx, paintLastX, paintLastY, p.x, p.y, size);
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(paintLastX, paintLastY);
+                    ctx.lineTo(p.x, p.y);
+                    ctx.stroke();
+                }
                 if (paintMode !== 'paint') {
                     const dist = Math.hypot(p.x - paintLastX, p.y - paintLastY);
                     paintStrokeInk += dist;
@@ -3718,17 +4427,38 @@
 
             function end(e) {
                 if (!paintDrawing) return;
+                const wasShape = paintMode === 'paint' && isPaintShapeTool(paintBrush) && paintShapeStart;
                 paintDrawing = false;
                 try { if (e && e.pointerId != null) canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+
+                if (wasShape) {
+                    const ctx = canvas.getContext('2d');
+                    let p = { x: paintLastX, y: paintLastY };
+                    try {
+                        if (e) p = pos(e);
+                    } catch (_) {}
+                    if (paintShapeSnapshot) {
+                        try { ctx.putImageData(paintShapeSnapshot, 0, 0); } catch (_) {}
+                    }
+                    const lw = brushSize();
+                    drawPaintShapePreview(ctx, paintBrush, paintShapeStart.x, paintShapeStart.y, p.x, p.y, paintColor, lw);
+                    paintShapeStart = null;
+                    paintShapeSnapshot = null;
+                    return;
+                }
+
+                paintShapeStart = null;
+                paintShapeSnapshot = null;
                 if (paintMode === 'paint' || paintCompleting) return;
                 const cov = traceCoverage();
-                if (cov >= 0.90 && allStrokesTraced()) {
+                const need = paintCompleteThreshold();
+                if (cov >= need && allStrokesTraced()) {
                     completePaintGuide();
                     return;
                 }
-                // Large shapes: allow longer exploring strokes before reset
-                const inkLimit = paintMode === 'shapes' ? 280 : 140;
-                const covFail = paintMode === 'shapes' ? 0.12 : 0.18;
+                // Large shapes/numbers: allow longer exploring strokes before reset
+                const inkLimit = paintMode === 'shapes' ? 320 : (paintMode === 'numbers' ? 220 : 140);
+                const covFail = paintMode === 'shapes' ? 0.10 : (paintMode === 'numbers' ? 0.14 : 0.18);
                 if (paintStrokeInk > inkLimit && cov < covFail) {
                     failTraceAndReset();
                 }

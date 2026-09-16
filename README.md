@@ -22,7 +22,7 @@ For the best phone experience:
 - 2-3 years / Shapes: shape homes (drag), biggest shape, find a shape, pop shapes
 - 3-4 years / Numbers: count stars, more or less, tap a number, count together
 - 4-5 years / Letters: picture match, bubble pop, letter sounds, picture words
-- Create: finger paint, letter trace, number trace, shape trace
+- Create: finger paint (colors, brushes, stamps, shapes), letter trace, number trace, shape trace
 
 ## Voice
 
@@ -44,4 +44,4 @@ No accounts. No tracking scripts. Photos from Capture a moment stay on the devic
 
 ## Updates
 
-After a new deploy, refresh the site or reopen the home-screen icon. This release uses cache v47.
+After a new deploy, refresh the site or reopen the home-screen icon. This release uses cache v51.
