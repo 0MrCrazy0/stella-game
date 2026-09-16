@@ -44,4 +44,4 @@ No accounts. No tracking scripts. Photos from Capture a moment stay on the devic
 
 ## Updates
 
-After a new deploy, refresh the site or reopen the home-screen icon. This release uses cache v46.
+After a new deploy, refresh the site or reopen the home-screen icon. This release uses cache v47.

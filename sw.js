@@ -1,5 +1,5 @@
-// --- STELLA'S GAME SERVICE WORKER (v46.0 PUBLIC) ---
-const CACHE_NAME = 'stellas-game-v46';
+// --- STELLA'S GAME SERVICE WORKER (v47.0 PUBLIC) ---
+const CACHE_NAME = 'stellas-game-v47';
 const ASSETS = [
   './',
   './index.html',

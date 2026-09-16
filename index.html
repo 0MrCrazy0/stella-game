@@ -1529,8 +1529,48 @@
             return trackTimeout(id);
         }
 
+        // Round input lock — spam taps must not double-score or pile TTS
+        let inputLocked = false;
+        let answerRound = 0; // bumped in beginRound; stale taps no-op
+
+        function beginRound() {
+            inputLocked = false;
+            answerRound++;
+            clearSpeakQueue();
+            return answerRound;
+        }
+
+        function lockInput() {
+            inputLocked = true;
+        }
+
+        function unlockInput() {
+            inputLocked = false;
+        }
+
+        /** Gate a choice tap. Locks input + clears TTS. False if busy/stale. */
+        function takeAnswer(round) {
+            if (inputLocked) return false;
+            if (round != null && round !== answerRound) return false;
+            inputLocked = true;
+            clearSpeakQueue();
+            return true;
+        }
+
+        /** After a wrong answer, unlock so the child can try again. */
+        function allowRetry(delayMs) {
+            const round = answerRound;
+            const session = gameSession;
+            scheduleNext(() => {
+                if (session !== gameSession || round !== answerRound) return;
+                inputLocked = false;
+            }, delayMs == null ? 650 : delayMs);
+        }
+
         function stopAllGameActivity() {
             gameSession++; // invalidate pending scheduleNext callbacks
+            inputLocked = false;
+            answerRound++; // invalidate in-flight answer handlers
             clearSpeakQueue();
             try { if (typeof stopAbcSong === 'function') stopAbcSong(); } catch(e) {}
             try { if (typeof stopConfetti === 'function') stopConfetti(); } catch(e) {}
@@ -1872,6 +1912,7 @@
                 el.setAttribute('role', 'button');
                 el.setAttribute('aria-label', it.name);
                 el.addEventListener('click', () => {
+                    clearSpeakQueue();
                     playSound(it.tone);
                     speak(it.name);
                 });
@@ -1921,6 +1962,11 @@
                 card.setAttribute('aria-label', a.name);
                 card.innerHTML = `<div class="emoji">${a.emoji}</div><div class="label">${a.name}</div>`;
                 card.onclick = () => {
+                    clearSpeakQueue();
+                    if (activeAnimalAudio) {
+                        try { activeAnimalAudio.pause(); activeAnimalAudio.currentTime = 0; } catch (e) {}
+                        activeAnimalAudio = null;
+                    }
                     lightUp(card);
                     // Name first, then real animal sound after speech ends
                     speak(a.phrase, { onEnd: () => playAnimalSound(a.file) });
@@ -1931,6 +1977,7 @@
 
         // --- STAGE 0-1 GAME D: PEEKABOO ---
         function initSensoryPeekaboo() {
+            const round = beginRound();
             speak("Where is the happy face?");
             const area = document.getElementById('peekaboo-area');
             area.innerHTML = '';
@@ -1954,10 +2001,14 @@
                     ev.preventDefault();
                     ev.stopPropagation();
                     if (door.classList.contains('open')) return;
+                    if (inputLocked) return;
+                    if (round !== answerRound) return;
+                    clearSpeakQueue();
                     door.classList.add('open');
                     door.textContent = reveal;
                     door.setAttribute('aria-label', isWinner ? 'Happy face' : 'Moon');
                     if (isWinner) {
+                        lockInput();
                         lightUp(door);
                         playSound('success');
                         speak("Peekaboo! I see you!");
@@ -2049,6 +2100,7 @@
             {name: 'Pink',   hex: '#FF6B9D', emoji: '🩷'}
         ];
         function initColorsBlobs() {
+            const round = beginRound();
             const pool = [...COLORS].sort(() => Math.random() - 0.5).slice(0, 4);
             // Prefer a different color than last time
             let target = pool[Math.floor(Math.random() * pool.length)];
@@ -2069,6 +2121,7 @@
                 b.style.backgroundColor = c.hex;
                 b.title = c.name;
                 b.onclick = () => {
+                    if (!takeAnswer(round)) return;
                     if (c.name === target.name) {
                         lightUp(b);
                         playSound('success');
@@ -2078,6 +2131,7 @@
                     } else {
                         playSound('fail');
                         speak('Try again');
+                        allowRetry();
                     }
                 };
                 options.appendChild(b);
@@ -2091,6 +2145,7 @@
             showFlashcard(true);
         }
         function stepFlashcard(dir) {
+            clearSpeakQueue();
             currentFlashIdx = (currentFlashIdx + dir + COLORS.length) % COLORS.length;
             showFlashcard(true);
         }
@@ -2114,6 +2169,7 @@
             {id: 'star',     color: '#2A9D8F', svg: '<polygon points="50,5 64,36 98,36 70,57 81,91 50,70 19,91 30,57 2,36 36,36" fill="COLOR"/>'}
         ];
         function initShapesMatch() {
+            beginRound();
             speak("Drag each shape into its home");
             const workspace = document.getElementById('workspace-shapes'); 
             workspace.innerHTML = '';
@@ -2221,11 +2277,13 @@
                     if (shape) {
                         targetSlot.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${shape.svg.replace('COLOR', shape.color)}</svg>`;
                     }
+                    clearSpeakQueue();
                     playSound('success');
                     praise();
 
                     const placed = document.querySelectorAll('#workspace-shapes .interactive-item.placed');
                     if (placed.length === 4) {
+                        lockInput();
                         triggerConfetti();
                         scheduleNext(() => initShapesMatch(), 2000);
                     }
@@ -2245,6 +2303,7 @@
 
         // --- STAGE 2-3 GAME B: SIZE SORTING ---
         function initShapesSize() {
+            const round = beginRound();
             const types = ['circle', 'square', 'star'];
             const chosenType = types[Math.floor(Math.random() * types.length)];
             const scales = [
@@ -2277,6 +2336,7 @@
                 box.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${targetGeometry.svg.replace('COLOR', fillColor)}</svg>`;
                 
                 box.onclick = () => {
+                    if (!takeAnswer(round)) return;
                     if ((wantBiggest && s.name === 'BIGGEST') || (!wantBiggest && s.name === 'small')) {
                         playSound('success');
                         praise();
@@ -2286,6 +2346,7 @@
                         speak('Try again');
                         box.style.transform = 'scale(0.9)';
                         setTimeout(() => box.style.transform = '', 150);
+                        allowRetry();
                     }
                 };
                 options.appendChild(box);
@@ -2294,6 +2355,7 @@
 
         // --- STAGE 3-4 GAME A: STAR COUNTING ---
         function initMathCount() {
+            const round = beginRound();
             // 1–20 is perfect for toddlers
             let count;
             do { count = Math.floor(Math.random() * 20) + 1; } while (count === lastNumberTarget);
@@ -2319,6 +2381,7 @@
                 b.className = 'num-btn'; 
                 b.innerText = n;
                 b.onclick = () => {
+                    if (!takeAnswer(round)) return;
                     if (n === count) {
                         lightUp(b);
                         playSound('success');
@@ -2327,6 +2390,7 @@
                     } else {
                         playSound('fail');
                         speak('Try again');
+                        allowRetry();
                     }
                 };
                 answers.appendChild(b);
@@ -2336,6 +2400,8 @@
         // --- STAGE 3-4 GAME B: MORE OR LESS ---
         let correctCompSide = 'left';
         function initMathComparison() {
+            const round = beginRound();
+            window._compRound = round;
             const leftSide = document.getElementById('comp-left'); leftSide.innerHTML = '';
             const rightSide = document.getElementById('comp-right'); rightSide.innerHTML = '';
             
@@ -2361,6 +2427,8 @@
             }
         }
         function checkComparison(side) {
+            const round = window._compRound;
+            if (!takeAnswer(round)) return;
             if(side === correctCompSide) {
                 const box = document.getElementById(side === 'left' ? 'comp-left' : 'comp-right');
                 lightUp(box);
@@ -2370,6 +2438,7 @@
             } else {
                 playSound('fail');
                 speak('Try again');
+                allowRetry();
             }
         }
 
@@ -2405,6 +2474,7 @@
         ];
 
         function initEnglishMatch() {
+            const round = beginRound();
             const pool = [...DICTIONARY].sort(() => Math.random() - 0.5).slice(0, 3);
             let target = pool[Math.floor(Math.random() * pool.length)];
             if (lastLetterTarget) {
@@ -2421,6 +2491,7 @@
                 choice.className = 'abc-choice';
                 choice.innerHTML = `<svg viewBox="0 0 100 100">${c.svg}</svg><span style="font-weight:bold">${c.name}</span>`;
                 choice.onclick = () => {
+                    if (!takeAnswer(round)) return;
                     if (c.L === target.L) {
                         lightUp(choice);
                         playSound('success');
@@ -2429,6 +2500,7 @@
                     } else {
                         playSound('fail');
                         speak('Try again');
+                        allowRetry();
                     }
                 };
                 options.appendChild(choice);
@@ -2437,6 +2509,8 @@
 
         // --- STAGE 4-5 GAME B: ALPHABET POP (FULL A–Z) ---
         function initEnglishPop() {
+            const round = beginRound();
+            window._popRound = round;
             const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
             let targetLetter;
             do { targetLetter = letters[Math.floor(Math.random() * letters.length)]; } while (targetLetter === lastLetterTarget);
@@ -2491,6 +2565,9 @@
 
                 b.onclick = () => {
                     if (b.dataset.popped === '1') return;
+                    if (inputLocked) return;
+                    if (window._popRound != null && window._popRound !== answerRound) return;
+                    clearSpeakQueue();
                     if (b.innerText === targetLetter) {
                         b.dataset.popped = '1';
                         lightUp(b);
@@ -2501,10 +2578,12 @@
                         praise();
 
                         scheduleNext(() => {
+                            if (window._popRound != null && window._popRound !== answerRound) return;
                             const remainingTargets = Array.from(chamber.children).filter(el =>
                                 el.innerText === targetLetter && el.dataset.popped !== '1'
                             );
                             if (remainingTargets.length === 0) {
+                                lockInput();
                                 triggerConfetti();
                                 scheduleNext(() => initEnglishPop(), 1600);
                             }
@@ -2522,6 +2601,7 @@
 
         // --- EXTRA COLOR GAMES ---
         function initColorsSay() {
+            const round = beginRound();
             const c = COLORS[Math.floor(Math.random() * COLORS.length)];
             const sayPrompt = document.querySelector('#game-colors-say .game-prompt');
             if (sayPrompt) sayPrompt.innerText = `This is ${c.name} ${c.emoji}`;
@@ -2535,7 +2615,13 @@
             blob.setAttribute('aria-label', c.name);
             blob.style.backgroundColor = c.hex;
             blob.style.width = '160px'; blob.style.height = '160px';
-            blob.onclick = () => { lightUp(blob); speak(`Yes, ${c.name}`); playSound('success'); scheduleNext(() => initColorsSay(), 1500); };
+            blob.onclick = () => {
+                if (!takeAnswer(round)) return;
+                lightUp(blob);
+                speak(`Yes, ${c.name}`);
+                playSound('success');
+                scheduleNext(() => initColorsSay(), 1500);
+            };
             opts.appendChild(blob);
             const label = document.createElement('div');
             label.style.fontSize = '1.8rem'; label.style.fontWeight = 'bold'; label.style.marginTop = '16px';
@@ -2543,6 +2629,7 @@
             opts.appendChild(label);
         }
         function initColorsMatch() {
+            const round = beginRound();
             speak("Find two colors that are the same");
             const opts = document.getElementById('options-colors-match');
             if (!opts) return;
@@ -2557,6 +2644,9 @@
                 b.style.backgroundColor = c.hex;
                 b.dataset.name = c.name;
                 b.onclick = () => {
+                    if (inputLocked) return;
+                    if (round !== answerRound) return;
+                    clearSpeakQueue();
                     if (!selected) {
                         selected = b;
                         b.style.outline = '6px solid gold';
@@ -2565,12 +2655,15 @@
                         selected.style.outline = 'none';
                         selected = null;
                     } else if (selected.dataset.name === c.name) {
+                        lockInput();
                         playSound('success'); praise();
                         triggerConfetti(); scheduleNext(() => initColorsMatch(), 1600);
                     } else {
+                        lockInput();
                         playSound('fail'); speak('Try again');
                         selected.style.outline = 'none';
                         selected = null;
+                        allowRetry();
                     }
                 };
                 opts.appendChild(b);
@@ -2579,6 +2672,7 @@
 
         // --- EXTRA SHAPE GAMES ---
         function initShapesFind() {
+            const round = beginRound();
             const shapes = ['circle', 'square', 'triangle', 'star'];
             const target = pickDifferent(shapes, lastShapeTarget);
             lastShapeTarget = target;
@@ -2595,18 +2689,21 @@
                 box.style.cursor = 'pointer';
                 box.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${g.svg.replace('COLOR', g.color)}</svg>`;
                 box.onclick = () => {
+                    if (!takeAnswer(round)) return;
                     if (s === target) {
                         lightUp(box);
                         playSound('success'); praise();
                         triggerConfetti(); scheduleNext(() => initShapesFind(), 1600);
                     } else {
                         playSound('fail'); speak('Try again');
+                        allowRetry();
                     }
                 };
                 options.appendChild(box);
             });
         }
         function initShapesPop() {
+            const round = beginRound();
             const shapes = ['circle', 'square', 'triangle', 'star'];
             const target = pickDifferent(shapes, lastShapeTarget);
             lastShapeTarget = target;
@@ -2632,12 +2729,17 @@
                 box.innerHTML = `<svg viewBox="0 0 100 100" width="100%" height="100%">${g.svg.replace('COLOR', g.color)}</svg>`;
                 box.onclick = () => {
                     if (box.style.opacity === '0') return;
+                    if (inputLocked) return;
+                    if (round !== answerRound) return;
+                    clearSpeakQueue();
                     if (s === target) {
                         playSound('success');
                         box.style.opacity = '0';
                         box.style.transform = 'scale(0)';
+                        box.style.pointerEvents = 'none';
                         remaining--;
                         if (remaining <= 0) {
+                            lockInput();
                             speak(`You popped all the ${target}s!`);
                             triggerConfetti();
                             scheduleNext(() => initShapesPop(), 1600);
@@ -2645,7 +2747,9 @@
                             praise();
                         }
                     } else {
+                        lockInput();
                         playSound('fail'); speak(`Find the ${target}`);
+                        allowRetry();
                     }
                 };
                 options.appendChild(box);
@@ -2658,6 +2762,7 @@
             6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten'
         };
         function initMathTouch() {
+            const round = beginRound();
             if (typeof mathTouchIdx !== 'number' || mathTouchIdx < 1 || mathTouchIdx > 10) mathTouchIdx = 1;
             const n = mathTouchIdx;
             lastNumberTarget = n;
@@ -2676,6 +2781,7 @@
                 b.className = 'num-btn';
                 b.innerText = num;
                 b.onclick = () => {
+                    if (!takeAnswer(round)) return;
                     if (num === n) {
                         lightUp(b);
                         playSound('success'); praise();
@@ -2683,12 +2789,14 @@
                         triggerConfetti(); scheduleNext(() => initMathTouch(), 1600);
                     } else {
                         playSound('fail'); speak('Try again');
+                        allowRetry();
                     }
                 };
                 answers.appendChild(b);
             });
         }
         function initMathCountWith() {
+            const round = beginRound();
             speak("Let's count the stars together");
             const count = Math.floor(Math.random() * 5) + 1;
             const display = document.getElementById('display-math-countwith');
@@ -2702,8 +2810,10 @@
                 display.innerHTML += `<svg class="count-item" viewBox="0 0 100 100"><polygon points="50,5 64,36 98,36 70,57 81,91 50,70 19,91 30,57 2,36 36,36" fill="${col}" stroke="#fff" stroke-width="3"/></svg>`;
             }
             window._countSession = gameSession;
+            window._countRound = round;
             const sayCount = (n) => {
                 if (gameSession !== window._countSession) return;
+                if (round !== answerRound) return;
                 if (n > count) return;
                 speak(String(n), { onEnd: () => sayCount(n + 1) });
             };
@@ -2715,12 +2825,14 @@
                 b.className = 'num-btn';
                 b.innerText = num;
                 b.onclick = () => {
+                    if (!takeAnswer(round)) return;
                     if (num === count) {
                         lightUp(b);
                         playSound('success'); praise();
                         triggerConfetti(); scheduleNext(() => initMathCountWith(), 1800);
                     } else {
                         playSound('fail'); speak('Try again');
+                        allowRetry();
                     }
                 };
                 answers.appendChild(b);
@@ -2733,6 +2845,7 @@
             showLetterSound(0, true);
         }
         function stepLetterSound(dir) {
+            clearSpeakQueue();
             letterSoundIdx = (letterSoundIdx + dir + 26) % 26;
             showLetterSound(letterSoundIdx, true);
         }
@@ -2757,6 +2870,7 @@
             if (talk) speakLetterSound(L);
         }
         function speakLetterSound(L) {
+            clearSpeakQueue();
             const little = String(L).toLowerCase();
             speak('This is the big letter ' + L);
             scheduleNext(() => speak('This is the little letter ' + little), 1200);
@@ -2767,6 +2881,7 @@
             showPictureWord(0, true);
         }
         function stepPictureWord(dir) {
+            clearSpeakQueue();
             pictureWordIdx = (pictureWordIdx + dir + DICTIONARY.length) % DICTIONARY.length;
             showPictureWord(pictureWordIdx, true);
         }
@@ -2788,6 +2903,7 @@
             if (talk) speakWordCard(item.name, item.L);
         }
         function speakWordCard(name, L) {
+            clearSpeakQueue();
             speak(name);
             scheduleNext(() => speak(name + ' starts with the letter ' + L), 1100);
         }
